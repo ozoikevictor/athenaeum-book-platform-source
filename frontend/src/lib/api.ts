@@ -3,12 +3,14 @@ const REQUEST_TIMEOUT_MS = 60000;
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
+  timeoutMs?: number;
 };
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
   const token = typeof window !== "undefined" ? window.localStorage.getItem("athenaeum-token") : null;
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const { timeoutMs = REQUEST_TIMEOUT_MS, ...requestOptions } = options;
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   const headers = new Headers(options.headers);
 
   if (!headers.has("Content-Type") && options.body !== undefined) {
@@ -21,7 +23,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
 
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
-      ...options,
+      ...requestOptions,
       headers,
       signal: controller.signal,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
@@ -36,7 +38,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     return data as T;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("The backend is taking too long to respond. If this is on Render free hosting, wait a moment and try again while the server wakes up.");
+      throw new Error("The backend is still waking up. Wait a moment, then try again. Render free hosting can sleep when nobody is using the app.");
+    }
+    if (error instanceof TypeError) {
+      throw new Error("The backend could not be reached from this device. Check the Vercel API URL and Render service status.");
     }
     throw error;
   } finally {
@@ -82,6 +87,7 @@ export function loginUser(email: string, password: string) {
   return apiRequest<AuthResponse>("/auth/login", {
     method: "POST",
     body: { email, password },
+    timeoutMs: 120000,
   });
 }
 
@@ -89,6 +95,7 @@ export function registerUser(input: { name: string; email: string; password: str
   return apiRequest<AuthResponse>("/auth/register", {
     method: "POST",
     body: input,
+    timeoutMs: 120000,
   });
 }
 

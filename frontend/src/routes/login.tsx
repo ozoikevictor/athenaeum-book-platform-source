@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AuthPage } from "@/components/book-platform";
+export const Route = createFileRoute("/login")({ head: () => ({ meta: [{ title: "Sign in — Athenaeum" }, { name: "description", content: "Sign in to your Athenaeum reading shelf." }, { property: "og:title", content: "Sign in — Athenaeum" }, { property: "og:description", content: "Sign in to your Athenaeum reading shelf." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: () => <AuthPage /> });

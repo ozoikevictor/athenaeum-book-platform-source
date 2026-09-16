@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AuthPage } from "@/components/book-platform";
+export const Route = createFileRoute("/register")({ head: () => ({ meta: [{ title: "Create your shelf — Athenaeum" }, { name: "description", content: "Create a reader profile and get thoughtful book recommendations." }, { property: "og:title", content: "Create your shelf — Athenaeum" }, { property: "og:description", content: "Create a reader profile and get thoughtful book recommendations." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: () => <AuthPage register /> });

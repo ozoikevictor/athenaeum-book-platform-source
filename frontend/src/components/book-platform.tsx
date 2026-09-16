@@ -172,8 +172,8 @@ function MarketingHeader() {
     ["/reading-list", "Reading List"],
   ] as const;
 
-  return <header className="sticky top-0 z-50 border-b border-line/80 bg-cream/95 backdrop-blur">
-    <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-5">
+  return <header className="sticky top-0 z-50 border-b border-line/80 bg-cream shadow-sm">
+    <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-5">
       <div className="flex items-center gap-3">
         <button className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink shadow-sm transition hover:bg-ink hover:text-cream md:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-5" /></button>
         <Logo />
@@ -185,19 +185,23 @@ function MarketingHeader() {
         <Button asChild variant="ghost" size="sm"><Link to="/login">Login</Link></Button>
         <Button asChild size="sm"><Link to="/register">Register</Link></Button>
       </div>
+      <div className="flex shrink-0 items-center gap-2 sm:hidden">
+        <Button asChild variant="outline" size="sm" className="h-9 px-3 text-xs"><Link to="/login">Login</Link></Button>
+        <Button asChild size="sm" className="h-9 px-3 text-xs"><Link to="/register">Register</Link></Button>
+      </div>
     </div>
-    {open && <div className="fixed inset-0 z-[80] bg-ink/60 md:hidden" role="presentation" onClick={() => setOpen(false)}>
-      <div className="flex h-full w-80 max-w-[86vw] flex-col border-r border-line bg-cream p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+    {open && <div className="fixed inset-0 z-[80] bg-ink/70 md:hidden" role="presentation" onClick={() => setOpen(false)}>
+      <div className="flex min-h-dvh w-full flex-col bg-paper p-5 text-ink shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between">
           <Logo compact />
           <button className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink transition hover:bg-ink hover:text-cream" aria-label="Close menu" onClick={() => setOpen(false)}><X className="size-5" /></button>
         </div>
         <nav className="mt-8 grid gap-2">
-          {nav.map(([to, label]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="rounded-lg px-3 py-3 text-sm font-semibold text-ink/70 hover:bg-paper hover:text-ink">{label}</Link>)}
+          {nav.map(([to, label]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="rounded-lg border border-line bg-cream px-4 py-3.5 text-base font-semibold text-ink/75 hover:bg-ink hover:text-cream">{label}</Link>)}
         </nav>
-        <div className="mt-auto grid gap-2">
-          <Button asChild variant="outline"><Link to="/login" onClick={() => setOpen(false)}>Login</Link></Button>
-          <Button asChild><Link to="/register" onClick={() => setOpen(false)}>Register</Link></Button>
+        <div className="mt-auto grid gap-3 border-t border-line pt-5">
+          <Button asChild variant="outline" className="h-12 text-base"><Link to="/login" onClick={() => setOpen(false)}>Login</Link></Button>
+          <Button asChild className="h-12 text-base"><Link to="/register" onClick={() => setOpen(false)}>Register</Link></Button>
         </div>
       </div>
     </div>}

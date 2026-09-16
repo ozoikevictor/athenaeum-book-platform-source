@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
+const REQUEST_TIMEOUT_MS = 60000;
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -7,7 +8,7 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
   const token = typeof window !== "undefined" ? window.localStorage.getItem("athenaeum-token") : null;
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 12000);
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   const headers = new Headers(options.headers);
 
   if (!headers.has("Content-Type") && options.body !== undefined) {
@@ -35,7 +36,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     return data as T;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("Backend is not responding. Check that the backend is running and MongoDB is connected.");
+      throw new Error("The backend is taking too long to respond. If this is on Render free hosting, wait a moment and try again while the server wakes up.");
     }
     throw error;
   } finally {

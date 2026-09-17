@@ -99,9 +99,9 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
     signOut();
     navigate({ to: "/login" });
   }
-  return <div className="min-h-screen bg-cream text-ink">
+  return <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
     <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
-      <div className="mx-auto flex h-18 max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-7 lg:px-10">
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-2 px-4 sm:h-18 sm:gap-4 sm:px-7 lg:px-10">
         <div className="flex items-center gap-3">
           <button className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink transition hover:bg-ink hover:text-cream lg:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-5" /></button>
           <Logo compact />
@@ -126,12 +126,12 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
         {admin && <div className="mt-8 rounded-xl border border-ink/10 bg-ink p-4 text-cream"><p className="text-[10px] uppercase tracking-[0.18em] text-cream/50">Staff mode</p><p className="mt-2 font-display text-lg">Keep the shelf thoughtful.</p><p className="mt-1 text-xs leading-relaxed text-cream/55">Review new books and keep recommendations human.</p><div className="mt-4 flex items-center justify-between gap-3"><Link to="/profile" onClick={() => setOpen(false)} className="text-xs font-medium text-gold hover:underline">View profile</Link><button className="text-xs font-medium text-cream/65 hover:text-cream" onClick={handleLogout}>Logout</button></div></div>}
     </aside>
     {open && <button className="fixed inset-0 z-40 bg-ink/25 backdrop-blur-[1px] lg:hidden" aria-label="Close navigation" onClick={() => setOpen(false)} />}
-    <main className="mx-auto min-w-0 max-w-[1440px] px-5 py-6 sm:px-7 lg:px-10 lg:py-9">{children}</main>
+    <main className="mx-auto min-w-0 max-w-[1440px] px-4 py-5 sm:px-7 sm:py-6 lg:px-10 lg:py-9">{children}</main>
   </div>;
 }
 
 function PageHeader({ eyebrow, title, description, action }: { eyebrow?: string; title: string; description?: string; action?: React.ReactNode }) {
-  return <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div>{eyebrow && <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">{eyebrow}</p>}<h1 className="mt-1 font-display text-4xl font-semibold leading-none text-ink sm:text-5xl">{title}</h1>{description && <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/55">{description}</p>}</div>{action}</div>;
+  return <div className="mb-6 flex min-w-0 flex-col items-stretch gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"><div className="min-w-0">{eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-clay sm:text-xs sm:tracking-[0.2em]">{eyebrow}</p>}<h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl sm:leading-none">{title}</h1>{description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/55 sm:mt-3">{description}</p>}</div>{action && <div className="w-full sm:w-auto">{action}</div>}</div>;
 }
 
 function SiteFooter({ compact = false }: { compact?: boolean }) {

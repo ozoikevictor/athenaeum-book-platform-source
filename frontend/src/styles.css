@@ -170,6 +170,21 @@
       font-size: 16px !important;
       touch-action: manipulation;
     }
+
+    [class~="overflow-x-auto"] {
+      max-width: calc(100vw - 2rem);
+      overscroll-behavior-inline: contain;
+    }
+
+    [class~="rounded-2xl"][class~="p-6"] {
+      padding: 1rem !important;
+    }
+  }
+
+  @media (max-width: 419px) {
+    [class~="grid-cols-2"][class~="lg:grid-cols-4"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
   }
 }
 

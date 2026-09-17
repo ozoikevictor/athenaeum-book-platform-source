@@ -563,13 +563,13 @@ function SiteFooter({ compact = false }: { compact?: boolean }) {
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Explore</h2>
           <div className="mt-3 grid gap-2 text-sm">
-            <Link to="/browse" className="hover:text-cream">
+            <Link to="/login" className="hover:text-cream">
               Browse books
             </Link>
-            <Link to="/reading-list" className="hover:text-cream">
+            <Link to="/login" className="hover:text-cream">
               Reading list
             </Link>
-            <Link to="/dashboard" className="hover:text-cream">
+            <Link to="/login" className="hover:text-cream">
               Dashboard
             </Link>
           </div>
@@ -583,7 +583,7 @@ function SiteFooter({ compact = false }: { compact?: boolean }) {
             <Link to="/register" className="hover:text-cream">
               Create account
             </Link>
-            <Link to="/admin" className="hover:text-cream">
+            <Link to="/login" className="hover:text-cream">
               Admin studio
             </Link>
           </div>
@@ -602,8 +602,8 @@ function MarketingHeader() {
   const [headerRaised, setHeaderRaised] = useState(false);
   const nav = [
     ["/", "Home"],
-    ["/browse", "Browse Books"],
-    ["/reading-list", "Reading List"],
+    ["/login", "Browse Books"],
+    ["/login", "Reading List"],
   ] as const;
 
   useEffect(() => {
@@ -638,10 +638,9 @@ function MarketingHeader() {
           <nav className="hidden items-center gap-1 rounded-xl border border-line/70 bg-cream/65 p-1.5 text-sm font-medium text-ink/60 shadow-sm md:flex">
             {nav.map(([to, label]) => (
               <Link
-                key={to}
+                key={label}
                 to={to}
                 className="rounded-lg px-4 py-2 transition hover:bg-paper hover:text-ink"
-                activeProps={{ className: "bg-ink text-cream shadow-sm hover:bg-ink hover:text-cream" }}
               >
                 {label}
               </Link>
@@ -691,11 +690,10 @@ function MarketingHeader() {
           <nav className="mt-10 grid gap-2">
             {nav.map(([to, label]) => (
               <Link
-                key={to}
+                key={label}
                 to={to}
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-3 py-3 text-sm font-semibold text-ink/65 transition hover:bg-cream hover:text-ink"
-                activeProps={{ className: "bg-ink text-cream hover:bg-ink hover:text-cream" }}
               >
                 {label}
               </Link>
@@ -824,7 +822,7 @@ export function LandingPage() {
                 </p>
                 <h2 className="mt-1 font-display text-3xl font-semibold">Browse by feeling</h2>
               </div>
-              <Link to="/browse" className="text-sm font-medium text-clay">
+              <Link to="/login" className="text-sm font-medium text-clay">
                 All genres →
               </Link>
             </div>
@@ -832,8 +830,7 @@ export function LandingPage() {
               {genres.slice(1).map((genre, i) => (
                 <Link
                   key={genre}
-                  to="/browse"
-                  search={{ genre }}
+                  to="/login"
                   style={{ animationDelay: `${i * 80}ms` }}
                   className={cx(
                     "animate-card-in rounded-xl border border-line p-4 transition hover:-translate-y-1 hover:border-clay/40 hover:shadow-lg",
@@ -864,7 +861,7 @@ export function LandingPage() {
               </p>
               <h2 className="mt-1 font-display text-3xl font-semibold">Popular with readers</h2>
             </div>
-            <Link to="/browse" className="text-sm font-medium text-clay">
+            <Link to="/login" className="text-sm font-medium text-clay">
               See all →
             </Link>
           </div>

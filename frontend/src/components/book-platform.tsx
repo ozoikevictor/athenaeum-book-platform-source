@@ -348,10 +348,10 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
     <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
       <header
         className={cx(
-          "fixed inset-x-0 top-0 z-40 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300",
+          "fixed inset-x-0 top-0 z-40 border-b border-clay/15 bg-paper/95 backdrop-blur-xl transition-all duration-300",
           headerRaised
-            ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]"
-            : "border-line/60 shadow-sm",
+            ? "shadow-[0_12px_32px_rgba(55,36,26,0.14)]"
+            : "shadow-[0_3px_14px_rgba(55,36,26,0.06)]",
         )}
       >
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-2 px-4 sm:h-18 sm:gap-4 sm:px-7 lg:px-10">
@@ -371,14 +371,15 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
               <Link
                 key={to}
                 to={to}
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink/65 transition hover:bg-ink/5"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink/60 transition hover:bg-cream hover:text-ink"
+                activeProps={{ className: "bg-ink text-cream shadow-sm hover:bg-ink hover:text-cream" }}
               >
                 <Icon className="size-4" />
                 {label}
               </Link>
             ))}
           </nav>
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 rounded-xl border border-line/80 bg-cream/70 p-1.5 shadow-sm sm:gap-3 sm:px-2">
             <Link
               to="/profile"
               className="hidden min-w-0 text-right transition hover:text-clay sm:block"
@@ -615,10 +616,10 @@ function MarketingHeader() {
     <>
       <header
         className={cx(
-          "fixed inset-x-0 top-0 z-50 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300",
+          "fixed inset-x-0 top-0 z-50 border-b border-clay/15 bg-paper/95 backdrop-blur-xl transition-all duration-300",
           headerRaised
-            ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]"
-            : "border-line/60 shadow-sm",
+            ? "shadow-[0_12px_32px_rgba(55,36,26,0.14)]"
+            : "shadow-[0_3px_14px_rgba(55,36,26,0.06)]",
         )}
       >
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-5">
@@ -633,9 +634,14 @@ function MarketingHeader() {
             </button>
             <Logo />
           </div>
-          <nav className="hidden items-center gap-8 text-sm font-medium text-ink/60 md:flex">
+          <nav className="hidden items-center gap-1 rounded-xl border border-line/70 bg-cream/65 p-1.5 text-sm font-medium text-ink/60 shadow-sm md:flex">
             {nav.map(([to, label]) => (
-              <Link key={to} to={to} className="transition hover:text-ink">
+              <Link
+                key={to}
+                to={to}
+                className="rounded-lg px-4 py-2 transition hover:bg-paper hover:text-ink"
+                activeProps={{ className: "bg-ink text-cream shadow-sm hover:bg-ink hover:text-cream" }}
+              >
                 {label}
               </Link>
             ))}

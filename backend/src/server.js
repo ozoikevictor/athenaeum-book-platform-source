@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const userRoutes = require("./routes/userRoutes");
+const { backfillPublicDomainReadingUrls } = require("./scripts/backfillPublicDomainReadingUrls");
 
 dotenv.config();
 
@@ -57,6 +58,8 @@ app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
 
-connectDB().catch((error) => {
-  console.error("MongoDB connection failed:", error.message);
-});
+connectDB()
+  .then(() => backfillPublicDomainReadingUrls({ apply: true, verify: false }))
+  .catch((error) => {
+    console.error("MongoDB startup task failed:", error.message);
+  });

@@ -5,6 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "clear-demo-books": "node src/scripts/clearDemoBooks.js",
+    "backfill-reading-urls": "node src/scripts/backfillPublicDomainReadingUrls.js",
     "dev": "nodemon src/server.js",
     "make-admin": "node src/scripts/makeAdmin.js",
     "start": "node src/server.js"

@@ -302,6 +302,7 @@ function BookCard({
 function AppShell({ children, admin = false }: { children: React.ReactNode; admin?: boolean }) {
   const [open, setOpen] = useState(false);
   const [headerRaised, setHeaderRaised] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getCurrentUser();
@@ -320,9 +321,12 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
         ["/browse", "Browse Books", Compass],
         ["/reading-list", "Reading List", BookMarked],
       ];
-  function handleLogout() {
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 450));
     signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/login", replace: true });
   }
   const homePath = admin ? "/admin" : "/dashboard";
   const showBack = location.pathname !== homePath;
@@ -403,8 +407,9 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
               size="sm"
               className="hidden sm:inline-flex"
               onClick={handleLogout}
+              disabled={loggingOut}
             >
-              Logout
+              {loggingOut ? <><LoaderCircle className="animate-spin" /> Signing out...</> : "Logout"}
             </Button>
           </div>
         </div>
@@ -462,10 +467,11 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
                 View profile
               </Link>
               <button
-                className="text-xs font-medium text-ink/55 hover:text-destructive"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-ink/55 hover:text-destructive disabled:opacity-60"
                 onClick={handleLogout}
+                disabled={loggingOut}
               >
-                Logout
+                {loggingOut ? <><LoaderCircle className="size-3.5 animate-spin" /> Signing out...</> : "Logout"}
               </button>
             </div>
           </div>
@@ -486,10 +492,11 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
                 View profile
               </Link>
               <button
-                className="text-xs font-medium text-cream/65 hover:text-cream"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-cream/65 hover:text-cream disabled:opacity-60"
                 onClick={handleLogout}
+                disabled={loggingOut}
               >
-                Logout
+                {loggingOut ? <><LoaderCircle className="size-3.5 animate-spin" /> Signing out...</> : "Logout"}
               </button>
             </div>
           </div>

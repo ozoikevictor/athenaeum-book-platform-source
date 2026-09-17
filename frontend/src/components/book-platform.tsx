@@ -416,7 +416,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
               </Link>
             ))}
           </nav>
-          <div className="flex min-w-0 items-center gap-2 rounded-xl border border-line/80 bg-cream/70 p-1.5 shadow-sm sm:gap-3 sm:px-2">
+          <div className="flex min-w-0 items-center sm:gap-3 sm:rounded-xl sm:border sm:border-line/80 sm:bg-cream/70 sm:px-2 sm:py-1.5 sm:shadow-sm">
             <Link
               to="/profile"
               className="hidden min-w-0 text-right transition hover:text-clay sm:block"

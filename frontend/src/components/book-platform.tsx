@@ -1,12 +1,75 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
-  ArrowRight, BarChart3, Bell, BookMarked, BookOpen, Check, ChevronDown, CircleUserRound,
-  Compass, Edit3, Eye, Heart, LayoutDashboard, Library, LogIn, Menu, MoreHorizontal,
-  Plus, Search, Settings, SlidersHorizontal, Star, Trash2, Users, X,
+  ArrowRight,
+  BarChart3,
+  Bell,
+  BookMarked,
+  BookOpen,
+  Check,
+  ChevronDown,
+  CircleUserRound,
+  Compass,
+  Edit3,
+  Eye,
+  Heart,
+  LayoutDashboard,
+  Library,
+  LogIn,
+  Menu,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Settings,
+  SlidersHorizontal,
+  Star,
+  Trash2,
+  Users,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { approveAdminComment, changeMyPassword, createBook, createBookComment, deactivateAdminUser, deleteAdminBook, deleteAdminComment, deleteAdminUser, deleteMyAccount, downloadReportPdf, exportAccountData, getAdminBooks, getAdminEngagement, getAdminOverview, getAdminSavedBooks, getAdminUsers, getBook, getBookComments, getBooks, getDashboard, getGenres, getReadingList, hideAdminComment, loginUser, rateBook, registerUser, removeReadingListItem, saveBook, toggleBookLike, updateBook, updateReadingListItem, type AdminBookRow, type AdminEngagementResponse, type AdminOverviewResponse, type AdminSavedBookRow, type AdminUserRow, type ApiBook, type BookComment, type DashboardResponse, type ReadingListItem } from "@/lib/api";
+import {
+  approveAdminComment,
+  changeMyPassword,
+  createBook,
+  createBookComment,
+  deactivateAdminUser,
+  deleteAdminBook,
+  deleteAdminComment,
+  deleteAdminUser,
+  deleteMyAccount,
+  downloadReportPdf,
+  exportAccountData,
+  getAdminBooks,
+  getAdminEngagement,
+  getAdminOverview,
+  getAdminSavedBooks,
+  getAdminUsers,
+  getBook,
+  getBookComments,
+  getBooks,
+  getDashboard,
+  getGenres,
+  getReadingList,
+  hideAdminComment,
+  loginUser,
+  rateBook,
+  registerUser,
+  removeReadingListItem,
+  saveBook,
+  toggleBookLike,
+  updateBook,
+  updateReadingListItem,
+  type AdminBookRow,
+  type AdminEngagementResponse,
+  type AdminOverviewResponse,
+  type AdminSavedBookRow,
+  type AdminUserRow,
+  type ApiBook,
+  type BookComment,
+  type DashboardResponse,
+  type ReadingListItem,
+} from "@/lib/api";
 import { getCurrentUser, signIn, signOut } from "@/lib/auth";
 import { books, genres, reviews, users, type Book, type BookStatus } from "@/lib/books";
 import cartographersSilence from "@/assets/cartographers-silence.jpg";
@@ -15,7 +78,8 @@ import quietMeridian from "@/assets/quiet-meridian.jpg";
 import smallLights from "@/assets/small-lights.jpg";
 import understory from "@/assets/understory.jpg";
 
-const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
+const cx = (...classes: Array<string | false | null | undefined>) =>
+  classes.filter(Boolean).join(" ");
 
 const localCovers: Record<string, string> = {
   "cartographers-silence": cartographersSilence,
@@ -25,7 +89,8 @@ const localCovers: Record<string, string> = {
   understory,
 };
 
-const coverPlaceholder = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='768' height='1152' viewBox='0 0 768 1152'%3E%3Crect width='768' height='1152' fill='%23f6efe0'/%3E%3Crect x='96' y='128' width='576' height='896' rx='28' fill='%23ffffff' stroke='%23d9c9ae' stroke-width='8'/%3E%3Ctext x='384' y='530' text-anchor='middle' font-family='serif' font-size='64' fill='%2337241a'%3EAthenaeum%3C/text%3E%3Ctext x='384' y='610' text-anchor='middle' font-family='Arial' font-size='28' letter-spacing='6' fill='%23806f5f'%3EBOOK COVER%3C/text%3E%3C/svg%3E";
+const coverPlaceholder =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='768' height='1152' viewBox='0 0 768 1152'%3E%3Crect width='768' height='1152' fill='%23f6efe0'/%3E%3Crect x='96' y='128' width='576' height='896' rx='28' fill='%23ffffff' stroke='%23d9c9ae' stroke-width='8'/%3E%3Ctext x='384' y='530' text-anchor='middle' font-family='serif' font-size='64' fill='%2337241a'%3EAthenaeum%3C/text%3E%3Ctext x='384' y='610' text-anchor='middle' font-family='Arial' font-size='28' letter-spacing='6' fill='%23806f5f'%3EBOOK COVER%3C/text%3E%3C/svg%3E";
 
 function coverSrc(book: Pick<Book, "id" | "cover"> | Pick<ApiBook, "id" | "cover">) {
   const savedCover = book.cover?.trim();
@@ -38,28 +103,94 @@ function coverSrc(book: Pick<Book, "id" | "cover"> | Pick<ApiBook, "id" | "cover
 }
 
 function Cover({ book, className = "" }: { book: Book | ApiBook; className?: string }) {
-  return <img src={coverSrc(book)} alt={`${book.title} book cover`} width={768} height={1152} loading="lazy" className={cx("h-full w-full object-cover", className)} />;
+  return (
+    <img
+      src={coverSrc(book)}
+      alt={`${book.title} book cover`}
+      width={768}
+      height={1152}
+      loading="lazy"
+      className={cx("h-full w-full object-cover", className)}
+    />
+  );
 }
 
 function Logo({ compact = false }: { compact?: boolean }) {
-  return <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Athenaeum home">
-    <span className="leading-tight"><span className="block font-display text-xl font-semibold text-ink">Athenaeum</span>{!compact && <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/45">Reading Studio</span>}</span>
-  </Link>;
+  return (
+    <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Athenaeum home">
+      <span className="leading-tight">
+        <span className="block font-display text-xl font-semibold text-ink">Athenaeum</span>
+        {!compact && (
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/45">
+            Reading Studio
+          </span>
+        )}
+      </span>
+    </Link>
+  );
 }
 
 function AccountAvatar({ large = false }: { large?: boolean }) {
-  return <span className={cx("grid shrink-0 place-items-center rounded-full border border-line bg-paper text-ink/55", large ? "size-20 rounded-2xl" : "size-10")} aria-hidden="true"><CircleUserRound className={large ? "size-9" : "size-5"} /></span>;
+  return (
+    <span
+      className={cx(
+        "grid shrink-0 place-items-center rounded-full border border-line bg-paper text-ink/55",
+        large ? "size-20 rounded-2xl" : "size-10",
+      )}
+      aria-hidden="true"
+    >
+      <CircleUserRound className={large ? "size-9" : "size-5"} />
+    </span>
+  );
 }
 
 function StarRating({ value, showValue = true }: { value: number; showValue?: boolean }) {
-  return <span className="inline-flex items-center gap-1 text-xs font-medium text-ink/70"><Star className="size-3.5 fill-gold text-gold" />{showValue && value.toFixed(1)}</span>;
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-ink/70">
+      <Star className="size-3.5 fill-gold text-gold" />
+      {showValue && value.toFixed(1)}
+    </span>
+  );
 }
 
-function RatingControl({ value = 0, onChange }: { value?: number; onChange: (value: number) => void }) {
-  return <div className="inline-flex items-center gap-1" aria-label="Rate this book">{[1, 2, 3, 4, 5].map((star) => <button key={star} type="button" onClick={() => onChange(star)} className={cx("grid size-8 place-items-center rounded-md border transition", star <= value ? "border-gold/40 bg-gold/15 text-gold" : "border-line bg-cream text-ink/25 hover:text-gold")} aria-label={`${star} star rating`}><Star className={cx("size-4", star <= value && "fill-current")} /></button>)}</div>;
+function RatingControl({
+  value = 0,
+  onChange,
+}: {
+  value?: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="inline-flex items-center gap-1" aria-label="Rate this book">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onClick={() => onChange(star)}
+          className={cx(
+            "grid size-8 place-items-center rounded-md border transition",
+            star <= value
+              ? "border-gold/40 bg-gold/15 text-gold"
+              : "border-line bg-cream text-ink/25 hover:text-gold",
+          )}
+          aria-label={`${star} star rating`}
+        >
+          <Star className={cx("size-4", star <= value && "fill-current")} />
+        </button>
+      ))}
+    </div>
+  );
 }
 
-function BookCard({ book, compact = false, publicView = false }: { book: Book | ApiBook; compact?: boolean; publicView?: boolean }) {
+function BookCard({
+  book,
+  compact = false,
+  publicView = false,
+}: {
+  book: Book | ApiBook;
+  compact?: boolean;
+  publicView?: boolean;
+}) {
   const [saved, setSaved] = useState(book.status !== undefined);
   const [saving, setSaving] = useState(false);
   async function handleSave() {
@@ -73,21 +204,96 @@ function BookCard({ book, compact = false, publicView = false }: { book: Book | 
       setSaving(false);
     }
   }
-  const coverLink = publicView
-    ? <Link to="/login" className={cx("block overflow-hidden rounded-xl bg-cream ring-1 ring-ink/10 transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl", compact ? "h-20 w-14 shrink-0" : "aspect-[2/3]")}><Cover book={book} /></Link>
-    : <Link to="/books/$bookId" params={{ bookId: book.id }} className={cx("block overflow-hidden rounded-xl bg-cream ring-1 ring-ink/10 transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl", compact ? "h-20 w-14 shrink-0" : "aspect-[2/3]")}><Cover book={book} /></Link>;
-  const titleLink = publicView
-    ? <Link to="/login" className="block truncate font-display text-base font-semibold text-ink hover:text-clay">{book.title}</Link>
-    : <Link to="/books/$bookId" params={{ bookId: book.id }} className="block truncate font-display text-base font-semibold text-ink hover:text-clay">{book.title}</Link>;
-  return <article className={cx("group", compact && "flex gap-3") }>
-    {coverLink}
-    <div className={cx(compact ? "min-w-0" : "mt-3")}>
-      {titleLink}
-      <p className="truncate text-xs text-ink/55">{book.author}</p>
-      <div className="mt-1.5 flex items-center justify-between gap-2"><StarRating value={book.rating} /><span className="truncate text-[10px] uppercase tracking-wide text-ink/45">{book.genre}</span></div>
-      {!compact && <div className="mt-3 flex gap-1.5">{publicView ? <Button asChild size="sm" variant="outline" className="h-8 flex-1 text-xs"><Link to="/login"><BookMarked /> Save</Link></Button> : <Button size="sm" variant={saved ? "secondary" : "outline"} className="h-8 flex-1 text-xs" onClick={handleSave} disabled={saving || saved}>{saved ? <Check /> : <BookMarked />}{saved ? "Saved" : saving ? "Saving" : "Save"}</Button>}<Button asChild size="sm" variant="ghost" className="h-8 px-2">{publicView ? <Link to="/login" aria-label={`Sign in to view ${book.title}`}><Eye /></Link> : <Link to="/books/$bookId" params={{ bookId: book.id }} aria-label={`View ${book.title}`}><Eye /></Link>}</Button></div>}
-    </div>
-  </article>;
+  const coverLink = publicView ? (
+    <Link
+      to="/login"
+      className={cx(
+        "block overflow-hidden rounded-xl bg-cream ring-1 ring-ink/10 transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl",
+        compact ? "h-20 w-14 shrink-0" : "aspect-[2/3]",
+      )}
+    >
+      <Cover book={book} />
+    </Link>
+  ) : (
+    <Link
+      to="/books/$bookId"
+      params={{ bookId: book.id }}
+      className={cx(
+        "block overflow-hidden rounded-xl bg-cream ring-1 ring-ink/10 transition duration-300 group-hover:-translate-y-1 group-hover:shadow-xl",
+        compact ? "h-20 w-14 shrink-0" : "aspect-[2/3]",
+      )}
+    >
+      <Cover book={book} />
+    </Link>
+  );
+  const titleLink = publicView ? (
+    <Link
+      to="/login"
+      className="block truncate font-display text-base font-semibold text-ink hover:text-clay"
+    >
+      {book.title}
+    </Link>
+  ) : (
+    <Link
+      to="/books/$bookId"
+      params={{ bookId: book.id }}
+      className="block truncate font-display text-base font-semibold text-ink hover:text-clay"
+    >
+      {book.title}
+    </Link>
+  );
+  return (
+    <article className={cx("group", compact && "flex gap-3")}>
+      {coverLink}
+      <div className={cx(compact ? "min-w-0" : "mt-3")}>
+        {titleLink}
+        <p className="truncate text-xs text-ink/55">{book.author}</p>
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <StarRating value={book.rating} />
+          <span className="truncate text-[10px] uppercase tracking-wide text-ink/45">
+            {book.genre}
+          </span>
+        </div>
+        {!compact && (
+          <div className="mt-3 flex gap-1.5">
+            {publicView ? (
+              <Button asChild size="sm" variant="outline" className="h-8 flex-1 text-xs">
+                <Link to="/login">
+                  <BookMarked /> Save
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant={saved ? "secondary" : "outline"}
+                className="h-8 flex-1 text-xs"
+                onClick={handleSave}
+                disabled={saving || saved}
+              >
+                {saved ? <Check /> : <BookMarked />}
+                {saved ? "Saved" : saving ? "Saving" : "Save"}
+              </Button>
+            )}
+            <Button asChild size="sm" variant="ghost" className="h-8 px-2">
+              {publicView ? (
+                <Link to="/login" aria-label={`Sign in to view ${book.title}`}>
+                  <Eye />
+                </Link>
+              ) : (
+                <Link
+                  to="/books/$bookId"
+                  params={{ bookId: book.id }}
+                  aria-label={`View ${book.title}`}
+                >
+                  <Eye />
+                </Link>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+    </article>
+  );
 }
 
 function AppShell({ children, admin = false }: { children: React.ReactNode; admin?: boolean }) {
@@ -98,11 +304,19 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Reader";
   const displayBooks = currentUser?.books ?? 0;
-  const nav: ReadonlyArray<readonly [string, string, typeof LayoutDashboard]> = admin ? [
-    ["/admin", "Overview", LayoutDashboard], ["/admin/books", "Books", Library], ["/admin/saved-books", "Saved Books", BookMarked], ["/admin/users", "Readers", Users], ["/admin/reviews", "Reviews", Star],
-  ] : [
-    ["/dashboard", "Dashboard", LayoutDashboard], ["/browse", "Browse Books", Compass], ["/reading-list", "Reading List", BookMarked], ["/profile", "Profile", CircleUserRound],
-  ];
+  const nav: ReadonlyArray<readonly [string, string, typeof LayoutDashboard]> = admin
+    ? [
+        ["/admin", "Overview", LayoutDashboard],
+        ["/admin/books", "Books", Library],
+        ["/admin/saved-books", "Saved Books", BookMarked],
+        ["/admin/users", "Readers", Users],
+        ["/admin/reviews", "Reviews", Star],
+      ]
+    : [
+        ["/dashboard", "Dashboard", LayoutDashboard],
+        ["/browse", "Browse Books", Compass],
+        ["/reading-list", "Reading List", BookMarked],
+      ];
   function handleLogout() {
     signOut();
     navigate({ to: "/login" });
@@ -122,77 +336,255 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
     window.addEventListener("scroll", updateHeader, { passive: true });
     return () => window.removeEventListener("scroll", updateHeader);
   }, []);
-  return <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
-    <header className={cx("fixed inset-x-0 top-0 z-40 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300", headerRaised ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]" : "border-line/60 shadow-sm")}>
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-2 px-4 sm:h-18 sm:gap-4 sm:px-7 lg:px-10">
-        <div className="flex items-center gap-3">
-          <button className="grid size-10 place-items-center text-ink transition hover:text-clay lg:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-6" /></button>
-          <Logo compact />
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
+      <header
+        className={cx(
+          "fixed inset-x-0 top-0 z-40 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300",
+          headerRaised
+            ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]"
+            : "border-line/60 shadow-sm",
+        )}
+      >
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-2 px-4 sm:h-18 sm:gap-4 sm:px-7 lg:px-10">
+          <div className="flex items-center gap-3">
+            <button
+              className="grid size-10 place-items-center text-ink transition hover:text-clay lg:hidden"
+              aria-label="Open menu"
+              aria-expanded={open}
+              onClick={() => setOpen(true)}
+            >
+              <Menu className="size-6" />
+            </button>
+            <Logo compact />
+          </div>
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">
+            {nav.map(([to, label, Icon]) => (
+              <Link
+                key={to}
+                to={to}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink/65 transition hover:bg-ink/5"
+              >
+                <Icon className="size-4" />
+                {label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              to="/profile"
+              className="hidden min-w-0 text-right transition hover:text-clay sm:block"
+            >
+              <p className="truncate text-sm font-semibold">{displayName}</p>
+              <p className="text-xs text-ink/45">{admin ? "Admin profile" : "Reader account"}</p>
+            </Link>
+            <Link to="/profile" aria-label="Open profile">
+              <AccountAvatar />
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </div>
         </div>
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">{nav.map(([to, label, Icon]) => <Link key={to} to={to} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink/65 transition hover:bg-ink/5"><Icon className="size-4" />{label}</Link>)}</nav>
-        <div className="flex min-w-0 items-center gap-3">
-          <Link to="/profile" className="hidden min-w-0 text-right transition hover:text-clay sm:block">
-            <p className="truncate text-sm font-semibold">{displayName}</p>
-            <p className="text-xs text-ink/45">{admin ? "Admin profile" : "Reader account"}</p>
-          </Link>
-          <Link to="/profile" aria-label="Open profile"><AccountAvatar /></Link>
-          <Button variant="outline" size="sm" className="hidden sm:inline-flex" onClick={handleLogout}>Logout</Button>
+      </header>
+      <div className="h-16 sm:h-18" aria-hidden="true" />
+      <aside
+        className={cx(
+          "fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] -translate-x-full flex-col border-r border-line bg-cream px-6 py-7 shadow-2xl transition-transform duration-300 lg:hidden",
+          open && "translate-x-0",
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <Logo />
+          <button
+            className="grid size-9 place-items-center rounded-lg border border-line bg-paper transition hover:bg-ink hover:text-cream"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+          >
+            <X className="size-5" />
+          </button>
         </div>
-      </div>
-    </header>
-    <div className="h-16 sm:h-18" aria-hidden="true" />
-    <aside className={cx("fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] -translate-x-full flex-col border-r border-line bg-cream px-6 py-7 shadow-2xl transition-transform duration-300 lg:hidden", open && "translate-x-0")}>
-        <div className="flex items-center justify-between"><Logo /><button className="grid size-9 place-items-center rounded-lg border border-line bg-paper transition hover:bg-ink hover:text-cream" aria-label="Close menu" onClick={() => setOpen(false)}><X className="size-5" /></button></div>
         <nav className="mt-10 space-y-1">
-          {nav.map(([to, label, Icon]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink/65 transition hover:bg-ink/5"><Icon className="size-4.5" />{label}</Link>)}
+          {nav.map(([to, label, Icon]) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink/65 transition hover:bg-ink/5"
+            >
+              <Icon className="size-4.5" />
+              {label}
+            </Link>
+          ))}
         </nav>
-        {!admin && <div className="mt-8 rounded-xl border border-line bg-paper p-4"><div className="mb-3 flex items-center gap-2.5"><AccountAvatar /><div className="leading-tight"><p className="text-sm font-semibold">{displayName}</p><p className="text-xs text-ink/45">Reader · {displayBooks} books</p></div></div><div className="flex items-center justify-between gap-3"><Link to="/profile" onClick={() => setOpen(false)} className="text-xs font-medium text-clay hover:underline">View profile</Link><button className="text-xs font-medium text-ink/55 hover:text-destructive" onClick={handleLogout}>Logout</button></div></div>}
-        {admin && <div className="mt-8 rounded-xl border border-ink/10 bg-ink p-4 text-cream"><p className="text-[10px] uppercase tracking-[0.18em] text-cream/50">Staff mode</p><p className="mt-2 font-display text-lg">Keep the shelf thoughtful.</p><p className="mt-1 text-xs leading-relaxed text-cream/55">Review new books and keep recommendations human.</p><div className="mt-4 flex items-center justify-between gap-3"><Link to="/profile" onClick={() => setOpen(false)} className="text-xs font-medium text-gold hover:underline">View profile</Link><button className="text-xs font-medium text-cream/65 hover:text-cream" onClick={handleLogout}>Logout</button></div></div>}
-    </aside>
-    {open && <button className="fixed inset-0 z-40 bg-ink/25 backdrop-blur-[1px] lg:hidden" aria-label="Close navigation" onClick={() => setOpen(false)} />}
-    <main className="mx-auto min-w-0 max-w-[1440px] px-4 py-5 sm:px-7 sm:py-6 lg:px-10 lg:py-9">
-      {showBack && <button type="button" className="mb-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-line bg-paper px-5 text-sm font-semibold text-ink shadow-sm transition hover:border-ink/25 hover:bg-ink hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40" onClick={handleBack}>Back</button>}
-      {children}
-    </main>
-  </div>;
+        {!admin && (
+          <div className="mt-8 rounded-xl border border-line bg-paper p-4">
+            <div className="mb-3 flex items-center gap-2.5">
+              <AccountAvatar />
+              <div className="leading-tight">
+                <p className="text-sm font-semibold">{displayName}</p>
+                <p className="text-xs text-ink/45">Reader · {displayBooks} books</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className="text-xs font-medium text-clay hover:underline"
+              >
+                View profile
+              </Link>
+              <button
+                className="text-xs font-medium text-ink/55 hover:text-destructive"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+        {admin && (
+          <div className="mt-8 rounded-xl border border-ink/10 bg-ink p-4 text-cream">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-cream/50">Staff mode</p>
+            <p className="mt-2 font-display text-lg">Keep the shelf thoughtful.</p>
+            <p className="mt-1 text-xs leading-relaxed text-cream/55">
+              Review new books and keep recommendations human.
+            </p>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <Link
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className="text-xs font-medium text-gold hover:underline"
+              >
+                View profile
+              </Link>
+              <button
+                className="text-xs font-medium text-cream/65 hover:text-cream"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+      </aside>
+      {open && (
+        <button
+          className="fixed inset-0 z-40 bg-ink/25 backdrop-blur-[1px] lg:hidden"
+          aria-label="Close navigation"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      <main className="mx-auto min-w-0 max-w-[1440px] px-4 py-5 sm:px-7 sm:py-6 lg:px-10 lg:py-9">
+        {showBack && (
+          <button
+            type="button"
+            className="mb-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-line bg-paper px-5 text-sm font-semibold text-ink shadow-sm transition hover:border-ink/25 hover:bg-ink hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40"
+            onClick={handleBack}
+          >
+            Back
+          </button>
+        )}
+        {children}
+      </main>
+    </div>
+  );
 }
 
-function PageHeader({ eyebrow, title, description, action }: { eyebrow?: string; title: string; description?: string; action?: React.ReactNode }) {
-  return <div className="mb-6 flex min-w-0 flex-col items-stretch gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"><div className="min-w-0">{eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-clay sm:text-xs sm:tracking-[0.2em]">{eyebrow}</p>}<h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl sm:leading-none">{title}</h1>{description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/55 sm:mt-3">{description}</p>}</div>{action && <div className="w-full sm:w-auto">{action}</div>}</div>;
+function PageHeader({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="mb-6 flex min-w-0 flex-col items-stretch gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+      <div className="min-w-0">
+        {eyebrow && (
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-clay sm:text-xs sm:tracking-[0.2em]">
+            {eyebrow}
+          </p>
+        )}
+        <h1 className="mt-1 break-words font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl sm:leading-none">
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/55 sm:mt-3">
+            {description}
+          </p>
+        )}
+      </div>
+      {action && <div className="w-full sm:w-auto">{action}</div>}
+    </div>
+  );
 }
 
 function SiteFooter({ compact = false }: { compact?: boolean }) {
-  return <footer className={cx("bg-ink text-cream/65", compact ? "mt-12 rounded-2xl" : "mt-16")}>
-    <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:grid-cols-[1.2fr_1fr] lg:grid-cols-[1.5fr_1fr_1fr]">
-      <div>
-        <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Athenaeum home">
-          <span className="grid size-10 place-items-center rounded-xl bg-cream font-display text-lg text-ink shadow-sm">A</span>
-          <span className="leading-tight"><span className="block font-display text-xl font-semibold text-cream">Athenaeum</span><span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-cream/45">Reading Studio</span></span>
-        </Link>
-        <p className="mt-3 max-w-sm text-sm leading-relaxed">Thoughtful book recommendations, saved shelves, and reader tools for finding the stories worth your time.</p>
-      </div>
-      <div>
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Explore</h2>
-        <div className="mt-3 grid gap-2 text-sm">
-          <Link to="/browse" className="hover:text-cream">Browse books</Link>
-          <Link to="/reading-list" className="hover:text-cream">Reading list</Link>
-          <Link to="/dashboard" className="hover:text-cream">Dashboard</Link>
+  return (
+    <footer className={cx("bg-ink text-cream/65", compact ? "mt-12 rounded-2xl" : "mt-16")}>
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:grid-cols-[1.2fr_1fr] lg:grid-cols-[1.5fr_1fr_1fr]">
+        <div>
+          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Athenaeum home">
+            <span className="grid size-10 place-items-center rounded-xl bg-cream font-display text-lg text-ink shadow-sm">
+              A
+            </span>
+            <span className="leading-tight">
+              <span className="block font-display text-xl font-semibold text-cream">Athenaeum</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-cream/45">
+                Reading Studio
+              </span>
+            </span>
+          </Link>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed">
+            Thoughtful book recommendations, saved shelves, and reader tools for finding the stories
+            worth your time.
+          </p>
+        </div>
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Explore</h2>
+          <div className="mt-3 grid gap-2 text-sm">
+            <Link to="/browse" className="hover:text-cream">
+              Browse books
+            </Link>
+            <Link to="/reading-list" className="hover:text-cream">
+              Reading list
+            </Link>
+            <Link to="/dashboard" className="hover:text-cream">
+              Dashboard
+            </Link>
+          </div>
+        </div>
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Account</h2>
+          <div className="mt-3 grid gap-2 text-sm">
+            <Link to="/login" className="hover:text-cream">
+              Sign in
+            </Link>
+            <Link to="/register" className="hover:text-cream">
+              Create account
+            </Link>
+            <Link to="/admin" className="hover:text-cream">
+              Admin studio
+            </Link>
+          </div>
         </div>
       </div>
-      <div>
-        <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Account</h2>
-        <div className="mt-3 grid gap-2 text-sm">
-          <Link to="/login" className="hover:text-cream">Sign in</Link>
-          <Link to="/register" className="hover:text-cream">Create account</Link>
-          <Link to="/admin" className="hover:text-cream">Admin studio</Link>
-        </div>
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-cream/10 px-5 py-5 text-xs text-cream/45 sm:flex-row sm:items-center sm:justify-between">
+        <span>© 2026 Athenaeum. All rights reserved.</span>
+        <span>Made for curious readers.</span>
       </div>
-    </div>
-    <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-cream/10 px-5 py-5 text-xs text-cream/45 sm:flex-row sm:items-center sm:justify-between">
-      <span>© 2026 Athenaeum. All rights reserved.</span>
-      <span>Made for curious readers.</span>
-    </div>
-  </footer>;
+    </footer>
+  );
 }
 
 function MarketingHeader() {
@@ -211,55 +603,337 @@ function MarketingHeader() {
     return () => window.removeEventListener("scroll", updateHeader);
   }, []);
 
-  return <><header className={cx("fixed inset-x-0 top-0 z-50 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300", headerRaised ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]" : "border-line/60 shadow-sm")}>
-    <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-5">
-      <div className="flex items-center gap-3">
-        <button className="grid size-10 place-items-center text-ink transition hover:text-clay md:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-6" /></button>
-        <Logo />
-      </div>
-      <nav className="hidden items-center gap-8 text-sm font-medium text-ink/60 md:flex">
-        {nav.map(([to, label]) => <Link key={to} to={to} className="transition hover:text-ink">{label}</Link>)}
-      </nav>
-      <div className="hidden items-center gap-2 sm:flex">
-        <Button asChild variant="ghost" size="sm"><Link to="/login">Login</Link></Button>
-        <Button asChild size="sm"><Link to="/register">Register</Link></Button>
-      </div>
-      <div className="flex shrink-0 items-center gap-2 sm:hidden">
-        <Button asChild variant="outline" size="sm" className="h-9 px-3 text-xs"><Link to="/login">Login</Link></Button>
-        <Button asChild size="sm" className="h-9 px-3 text-xs"><Link to="/register">Register</Link></Button>
-      </div>
-    </div>
-    {open && <div className="fixed inset-0 z-[80] bg-ink/70 md:hidden" role="presentation" onClick={() => setOpen(false)}>
-      <div className="flex min-h-dvh w-full flex-col bg-paper p-5 text-ink shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <Logo compact />
-          <button className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink transition hover:bg-ink hover:text-cream" aria-label="Close menu" onClick={() => setOpen(false)}><X className="size-5" /></button>
+  return (
+    <>
+      <header
+        className={cx(
+          "fixed inset-x-0 top-0 z-50 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300",
+          headerRaised
+            ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]"
+            : "border-line/60 shadow-sm",
+        )}
+      >
+        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-5">
+          <div className="flex items-center gap-3">
+            <button
+              className="grid size-10 place-items-center text-ink transition hover:text-clay md:hidden"
+              aria-label="Open menu"
+              aria-expanded={open}
+              onClick={() => setOpen(true)}
+            >
+              <Menu className="size-6" />
+            </button>
+            <Logo />
+          </div>
+          <nav className="hidden items-center gap-8 text-sm font-medium text-ink/60 md:flex">
+            {nav.map(([to, label]) => (
+              <Link key={to} to={to} className="transition hover:text-ink">
+                {label}
+              </Link>
+            ))}
+          </nav>
+          <div className="hidden items-center gap-2 sm:flex">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/login">Login</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/register">Register</Link>
+            </Button>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 sm:hidden">
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 text-xs">
+              <Link to="/login">Login</Link>
+            </Button>
+            <Button asChild size="sm" className="h-9 px-3 text-xs">
+              <Link to="/register">Register</Link>
+            </Button>
+          </div>
         </div>
-        <nav className="mt-8 grid gap-2">
-          {nav.map(([to, label]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="rounded-lg border border-line bg-cream px-4 py-3.5 text-base font-semibold text-ink/75 hover:bg-ink hover:text-cream">{label}</Link>)}
-        </nav>
-        <div className="mt-auto grid gap-3 border-t border-line pt-5">
-          <Button asChild variant="outline" className="h-12 text-base"><Link to="/login" onClick={() => setOpen(false)}>Login</Link></Button>
-          <Button asChild className="h-12 text-base"><Link to="/register" onClick={() => setOpen(false)}>Register</Link></Button>
-        </div>
-      </div>
-    </div>}
-  </header><div className="h-18 sm:h-20" aria-hidden="true" /></>;
+        {open && (
+          <div
+            className="fixed inset-0 z-[80] bg-ink/70 md:hidden"
+            role="presentation"
+            onClick={() => setOpen(false)}
+          >
+            <div
+              className="flex min-h-dvh w-full flex-col bg-paper p-5 text-ink shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <Logo compact />
+                <button
+                  className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink transition hover:bg-ink hover:text-cream"
+                  aria-label="Close menu"
+                  onClick={() => setOpen(false)}
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+              <nav className="mt-8 grid gap-2">
+                {nav.map(([to, label]) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    onClick={() => setOpen(false)}
+                    className="rounded-lg border border-line bg-cream px-4 py-3.5 text-base font-semibold text-ink/75 hover:bg-ink hover:text-cream"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </nav>
+              <div className="mt-auto grid gap-3 border-t border-line pt-5">
+                <Button asChild variant="outline" className="h-12 text-base">
+                  <Link to="/login" onClick={() => setOpen(false)}>
+                    Login
+                  </Link>
+                </Button>
+                <Button asChild className="h-12 text-base">
+                  <Link to="/register" onClick={() => setOpen(false)}>
+                    Register
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+      <div className="h-18 sm:h-20" aria-hidden="true" />
+    </>
+  );
 }
 
 export function LandingPage() {
-  return <div className="min-h-screen bg-cream text-ink"><MarketingHeader />
-    <main><section className="animate-page-rise mx-auto grid max-w-7xl items-center gap-12 px-5 pb-12 pt-10 lg:grid-cols-2 lg:pb-16 lg:pt-16"><div><p className="animate-soft-rise text-xs font-semibold uppercase tracking-[0.22em] text-clay">Personal book discovery</p><h1 className="animate-soft-rise-delay-1 mt-5 max-w-xl font-display text-6xl font-semibold leading-[0.94] tracking-tight sm:text-7xl">Find books that feel picked for you.</h1><p className="animate-soft-rise-delay-2 mt-6 max-w-lg text-lg leading-relaxed text-ink/60">Athenaeum helps readers discover thoughtful recommendations from their favorite genres, saved books, and reading habits.</p><div className="animate-soft-rise-delay-3 mt-8 flex flex-wrap gap-3"><Button asChild size="lg"><Link to="/register">Create your account <ArrowRight /></Link></Button><Button asChild variant="outline" size="lg"><Link to="/login">Login</Link></Button></div><div className="animate-soft-rise-delay-3 mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6"><div><p className="font-display text-2xl font-semibold">4.8</p><p className="text-xs text-ink/45">reader rating</p></div><div><p className="font-display text-2xl font-semibold">12k+</p><p className="text-xs text-ink/45">books indexed</p></div><div><p className="font-display text-2xl font-semibold">31</p><p className="text-xs text-ink/45">genres curated</p></div></div></div><div className="animate-soft-rise-delay-2 relative mx-auto w-full max-w-md"><div className="absolute -inset-4 rounded-[2rem] bg-clay/10" /><div className="animate-book-float relative grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-4 shadow-2xl"><div className="col-span-2 overflow-hidden rounded-xl"><img src={books[0].cover} alt="The Cartographer's Silence cover" width={768} height={1152} className="h-72 w-full object-cover object-top transition duration-700 hover:scale-105 sm:h-96" /></div><div className="overflow-hidden rounded-xl"><Cover book={books[1]} className="transition duration-700 hover:scale-105" /></div><div className="flex flex-col justify-end rounded-xl bg-ink p-4 text-cream"><p className="text-[10px] uppercase tracking-[0.2em] text-cream/55">This week</p><p className="mt-2 font-display text-xl">Five new picks for your shelf.</p><Link to="/register" className="mt-5 text-xs font-semibold text-gold">Start your profile →</Link></div></div></div></section>
-      <section className="mx-auto max-w-7xl px-5 pb-14"><div className="animate-card-in grid gap-3 rounded-2xl border border-line bg-paper p-4 shadow-sm sm:grid-cols-3"><div className="rounded-xl bg-cream p-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Smart matching</p><p className="mt-2 text-sm leading-relaxed text-ink/60">Recommendations shaped by taste, pace, and favorite themes.</p></div><div className="rounded-xl bg-cream p-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Saved shelves</p><p className="mt-2 text-sm leading-relaxed text-ink/60">Keep want-to-read, current reads, and finished books organized.</p></div><div className="rounded-xl bg-cream p-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Reader-first</p><p className="mt-2 text-sm leading-relaxed text-ink/60">A calm interface built for choosing your next book with confidence.</p></div></div></section>
-      <section className="border-y border-line bg-paper"><div className="mx-auto max-w-7xl px-5 py-14"><div className="animate-soft-rise flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">Find your shelf</p><h2 className="mt-1 font-display text-3xl font-semibold">Browse by feeling</h2></div><Link to="/browse" className="text-sm font-medium text-clay">All genres →</Link></div><div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">{genres.slice(1).map((genre, i) => <Link key={genre} to="/browse" search={{ genre }} style={{ animationDelay: `${i * 80}ms` }} className={cx("animate-card-in rounded-xl border border-line p-4 transition hover:-translate-y-1 hover:border-clay/40 hover:shadow-lg", ["bg-clay/10", "bg-gold/10", "bg-sage/15", "bg-ink/5", "bg-clay/5", "bg-gold/10"][i])}><p className="font-display text-lg font-semibold">{genre}</p><p className="mt-1 text-xs text-ink/50">{[248, 190, 312, 165, 94, 76][i]} titles</p></Link>)}</div></div></section>
-      <section className="mx-auto max-w-7xl px-5 py-16"><div className="animate-soft-rise flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">The shelf this week</p><h2 className="mt-1 font-display text-3xl font-semibold">Popular with readers</h2></div><Link to="/browse" className="text-sm font-medium text-clay">See all →</Link></div><div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-5">{books.map((book, i) => <div key={book.id} className="animate-card-in" style={{ animationDelay: `${i * 90}ms` }}><BookCard book={book} publicView /></div>)}</div></section>
-      <section className="bg-ink text-cream"><div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:grid-cols-3"><div className="animate-soft-rise md:col-span-1"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">How it works</p><h2 className="mt-2 font-display text-4xl font-semibold">A better way to choose your next book.</h2></div>{[["01", "Build your profile", "Choose the genres, moods, and writers that match your reading life."], ["02", "Save your shelf", "Track what you want to read, what you are reading, and what stayed with you."], ["03", "Get better picks", "Each save and rating helps the platform surface books with more intention."]].map(([n, title, copy], i) => <div key={n} className="animate-card-in border-t border-cream/15 pt-5" style={{ animationDelay: `${i * 110}ms` }}><span className="font-display text-gold">{n}</span><h3 className="mt-3 font-display text-2xl font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-cream/60">{copy}</p></div>)}</div></section>
-      <section className="mx-auto max-w-7xl px-5 py-16"><div className="animate-soft-rise rounded-2xl border border-line bg-paper px-6 py-10 text-center shadow-sm sm:px-10"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">Ready when you are</p><h2 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-tight">Start with a reader profile and let your next shelf take shape.</h2><p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ink/55">Create an account, choose your favorite genres, and explore a calmer way to find books you will actually want to finish.</p><div className="mt-7 flex flex-wrap justify-center gap-3"><Button asChild size="lg"><Link to="/register">Create account</Link></Button><Button asChild variant="outline" size="lg"><Link to="/login">Login</Link></Button></div></div></section>
-    </main><SiteFooter /></div>;
+  return (
+    <div className="min-h-screen bg-cream text-ink">
+      <MarketingHeader />
+      <main>
+        <section className="animate-page-rise mx-auto grid max-w-7xl items-center gap-12 px-5 pb-12 pt-10 lg:grid-cols-2 lg:pb-16 lg:pt-16">
+          <div>
+            <p className="animate-soft-rise text-xs font-semibold uppercase tracking-[0.22em] text-clay">
+              Personal book discovery
+            </p>
+            <h1 className="animate-soft-rise-delay-1 mt-5 max-w-xl font-display text-6xl font-semibold leading-[0.94] tracking-tight sm:text-7xl">
+              Find books that feel picked for you.
+            </h1>
+            <p className="animate-soft-rise-delay-2 mt-6 max-w-lg text-lg leading-relaxed text-ink/60">
+              Athenaeum helps readers discover thoughtful recommendations from their favorite
+              genres, saved books, and reading habits.
+            </p>
+            <div className="animate-soft-rise-delay-3 mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link to="/register">
+                  Create your account <ArrowRight />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link to="/login">Login</Link>
+              </Button>
+            </div>
+            <div className="animate-soft-rise-delay-3 mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6">
+              <div>
+                <p className="font-display text-2xl font-semibold">4.8</p>
+                <p className="text-xs text-ink/45">reader rating</p>
+              </div>
+              <div>
+                <p className="font-display text-2xl font-semibold">12k+</p>
+                <p className="text-xs text-ink/45">books indexed</p>
+              </div>
+              <div>
+                <p className="font-display text-2xl font-semibold">31</p>
+                <p className="text-xs text-ink/45">genres curated</p>
+              </div>
+            </div>
+          </div>
+          <div className="animate-soft-rise-delay-2 relative mx-auto w-full max-w-md">
+            <div className="absolute -inset-4 rounded-[2rem] bg-clay/10" />
+            <div className="animate-book-float relative grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-4 shadow-2xl">
+              <div className="col-span-2 overflow-hidden rounded-xl">
+                <img
+                  src={books[0].cover}
+                  alt="The Cartographer's Silence cover"
+                  width={768}
+                  height={1152}
+                  className="h-72 w-full object-cover object-top transition duration-700 hover:scale-105 sm:h-96"
+                />
+              </div>
+              <div className="overflow-hidden rounded-xl">
+                <Cover book={books[1]} className="transition duration-700 hover:scale-105" />
+              </div>
+              <div className="flex flex-col justify-end rounded-xl bg-ink p-4 text-cream">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-cream/55">This week</p>
+                <p className="mt-2 font-display text-xl">Five new picks for your shelf.</p>
+                <Link to="/register" className="mt-5 text-xs font-semibold text-gold">
+                  Start your profile →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="mx-auto max-w-7xl px-5 pb-14">
+          <div className="animate-card-in grid gap-3 rounded-2xl border border-line bg-paper p-4 shadow-sm sm:grid-cols-3">
+            <div className="rounded-xl bg-cream p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+                Smart matching
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-ink/60">
+                Recommendations shaped by taste, pace, and favorite themes.
+              </p>
+            </div>
+            <div className="rounded-xl bg-cream p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+                Saved shelves
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-ink/60">
+                Keep want-to-read, current reads, and finished books organized.
+              </p>
+            </div>
+            <div className="rounded-xl bg-cream p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">
+                Reader-first
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-ink/60">
+                A calm interface built for choosing your next book with confidence.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section className="border-y border-line bg-paper">
+          <div className="mx-auto max-w-7xl px-5 py-14">
+            <div className="animate-soft-rise flex items-end justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">
+                  Find your shelf
+                </p>
+                <h2 className="mt-1 font-display text-3xl font-semibold">Browse by feeling</h2>
+              </div>
+              <Link to="/browse" className="text-sm font-medium text-clay">
+                All genres →
+              </Link>
+            </div>
+            <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+              {genres.slice(1).map((genre, i) => (
+                <Link
+                  key={genre}
+                  to="/browse"
+                  search={{ genre }}
+                  style={{ animationDelay: `${i * 80}ms` }}
+                  className={cx(
+                    "animate-card-in rounded-xl border border-line p-4 transition hover:-translate-y-1 hover:border-clay/40 hover:shadow-lg",
+                    [
+                      "bg-clay/10",
+                      "bg-gold/10",
+                      "bg-sage/15",
+                      "bg-ink/5",
+                      "bg-clay/5",
+                      "bg-gold/10",
+                    ][i],
+                  )}
+                >
+                  <p className="font-display text-lg font-semibold">{genre}</p>
+                  <p className="mt-1 text-xs text-ink/50">
+                    {[248, 190, 312, 165, 94, 76][i]} titles
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="mx-auto max-w-7xl px-5 py-16">
+          <div className="animate-soft-rise flex items-end justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">
+                The shelf this week
+              </p>
+              <h2 className="mt-1 font-display text-3xl font-semibold">Popular with readers</h2>
+            </div>
+            <Link to="/browse" className="text-sm font-medium text-clay">
+              See all →
+            </Link>
+          </div>
+          <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-5">
+            {books.map((book, i) => (
+              <div
+                key={book.id}
+                className="animate-card-in"
+                style={{ animationDelay: `${i * 90}ms` }}
+              >
+                <BookCard book={book} publicView />
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="bg-ink text-cream">
+          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:grid-cols-3">
+            <div className="animate-soft-rise md:col-span-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                How it works
+              </p>
+              <h2 className="mt-2 font-display text-4xl font-semibold">
+                A better way to choose your next book.
+              </h2>
+            </div>
+            {[
+              [
+                "01",
+                "Build your profile",
+                "Choose the genres, moods, and writers that match your reading life.",
+              ],
+              [
+                "02",
+                "Save your shelf",
+                "Track what you want to read, what you are reading, and what stayed with you.",
+              ],
+              [
+                "03",
+                "Get better picks",
+                "Each save and rating helps the platform surface books with more intention.",
+              ],
+            ].map(([n, title, copy], i) => (
+              <div
+                key={n}
+                className="animate-card-in border-t border-cream/15 pt-5"
+                style={{ animationDelay: `${i * 110}ms` }}
+              >
+                <span className="font-display text-gold">{n}</span>
+                <h3 className="mt-3 font-display text-2xl font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-cream/60">{copy}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="mx-auto max-w-7xl px-5 py-16">
+          <div className="animate-soft-rise rounded-2xl border border-line bg-paper px-6 py-10 text-center shadow-sm sm:px-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">
+              Ready when you are
+            </p>
+            <h2 className="mx-auto mt-3 max-w-2xl font-display text-4xl font-semibold leading-tight">
+              Start with a reader profile and let your next shelf take shape.
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-ink/55">
+              Create an account, choose your favorite genres, and explore a calmer way to find books
+              you will actually want to finish.
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Button asChild size="lg">
+                <Link to="/register">Create account</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link to="/login">Login</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      </main>
+      <SiteFooter />
+    </div>
+  );
 }
 
 export function AuthPage({ register = false }: { register?: boolean }) {
-  const navigate = useNavigate(); const [showPassword, setShowPassword] = useState(false); const [authError, setAuthError] = useState(""); const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const completeSignIn = (to: "/dashboard" | "/admin", token?: string, user?: unknown) => {
     signIn(token, user);
     navigate({ to });
@@ -288,42 +962,1879 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           })
         : await loginUser(email, password);
 
-      completeSignIn(response.user?.role === "Admin" ? "/admin" : "/dashboard", response.token, response.user);
+      completeSignIn(
+        response.user?.role === "Admin" ? "/admin" : "/dashboard",
+        response.token,
+        response.user,
+      );
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setSubmitting(false);
     }
   };
-  return <div className="min-h-screen bg-cream"><MarketingHeader /><main className="mx-auto grid max-w-5xl gap-10 px-5 pb-16 pt-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div className="hidden lg:block"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">{register ? "Make your shelf" : "Welcome back"}</p><h1 className="mt-3 max-w-md font-display text-5xl font-semibold leading-none">{register ? "A reading life, beautifully kept." : "Pick up where you left off."}</h1><p className="mt-5 max-w-sm text-sm leading-relaxed text-ink/55">{register ? "Save the books that stay with you and let us find the ones that might." : "Your recommendations, saved titles, and current reads are waiting."}</p><div className="mt-8 flex gap-3"><img src={books[0].cover} alt="" className="h-32 w-24 rounded-lg object-cover" /><img src={books[2].cover} alt="" className="h-32 w-24 rounded-lg object-cover" /><img src={books[1].cover} alt="" className="h-32 w-24 rounded-lg object-cover" /></div></div><div className="rounded-2xl border border-line bg-paper p-6 shadow-xl sm:p-9"><div className="mb-7"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">Athenaeum</p><h2 className="mt-2 font-display text-3xl font-semibold">{register ? "Create your reader profile" : "Sign in to your shelf"}</h2><p className="mt-2 text-sm text-ink/50">{register ? "A few details help us make better recommendations." : "Use your email and password to continue."}</p></div><form className="space-y-4" onSubmit={handleAuthSubmit}>
-      {register && <label className="block text-sm font-medium">Full name<input name="name" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2" placeholder="Maya Chen" required /></label>}
-      <label className="block text-sm font-medium">Email address<input name="email" type="email" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2" placeholder="you@example.com" required /></label>
-      <label className="block text-sm font-medium">Password<div className="relative mt-1.5"><input name="password" type={showPassword ? "text" : "password"} className="w-full rounded-lg border border-input bg-cream px-3 py-2.5 pr-16 outline-none ring-clay/30 focus:ring-2" placeholder="••••••••" required /><button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-clay" onClick={() => setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"}</button></div></label>
-      {register && <label className="block text-sm font-medium">Confirm password<input name="confirmPassword" type="password" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2" placeholder="••••••••" required /></label>}
-      {register && <div><p className="mb-2 text-sm font-medium">Favorite genres</p><div className="flex flex-wrap gap-2">{genres.slice(1, 6).map(g => <label key={g} className="cursor-pointer"><input name="favoriteGenres" value={g} type="checkbox" className="peer sr-only" /><span className="block rounded-full border border-line px-3 py-1.5 text-xs text-ink/65 transition peer-checked:border-clay peer-checked:bg-clay/10 peer-checked:text-clay">{g}</span></label>)}</div></div>}
-      {!register && <div className="flex items-center justify-between text-xs"><label className="flex items-center gap-2"><input type="checkbox" className="accent-clay" />Remember me</label><Link to="/login" className="font-medium text-clay">Forgot password?</Link></div>}
-      {authError && <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">{authError}</p>}
-      <Button type="submit" className="w-full" disabled={submitting}>{submitting ? "Please wait" : register ? "Create my shelf" : "Sign in"} <ArrowRight /></Button>
-    </form><p className="mt-6 text-center text-sm text-ink/55">{register ? "Already have a shelf? " : "New to Athenaeum? "}<Link to={register ? "/login" : "/register"} className="font-semibold text-clay">{register ? "Sign in" : "Create an account"}</Link></p></div></main></div>;
+  return (
+    <div className="min-h-screen bg-cream">
+      <MarketingHeader />
+      <main className="mx-auto grid max-w-5xl gap-10 px-5 pb-16 pt-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+        <div className="hidden lg:block">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">
+            {register ? "Make your shelf" : "Welcome back"}
+          </p>
+          <h1 className="mt-3 max-w-md font-display text-5xl font-semibold leading-none">
+            {register ? "A reading life, beautifully kept." : "Pick up where you left off."}
+          </h1>
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-ink/55">
+            {register
+              ? "Save the books that stay with you and let us find the ones that might."
+              : "Your recommendations, saved titles, and current reads are waiting."}
+          </p>
+          <div className="mt-8 flex gap-3">
+            <img src={books[0].cover} alt="" className="h-32 w-24 rounded-lg object-cover" />
+            <img src={books[2].cover} alt="" className="h-32 w-24 rounded-lg object-cover" />
+            <img src={books[1].cover} alt="" className="h-32 w-24 rounded-lg object-cover" />
+          </div>
+        </div>
+        <div className="rounded-2xl border border-line bg-paper p-6 shadow-xl sm:p-9">
+          <div className="mb-7">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">Athenaeum</p>
+            <h2 className="mt-2 font-display text-3xl font-semibold">
+              {register ? "Create your reader profile" : "Sign in to your shelf"}
+            </h2>
+            <p className="mt-2 text-sm text-ink/50">
+              {register
+                ? "A few details help us make better recommendations."
+                : "Use your email and password to continue."}
+            </p>
+          </div>
+          <form className="space-y-4" onSubmit={handleAuthSubmit}>
+            {register && (
+              <label className="block text-sm font-medium">
+                Full name
+                <input
+                  name="name"
+                  className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2"
+                  placeholder="Maya Chen"
+                  required
+                />
+              </label>
+            )}
+            <label className="block text-sm font-medium">
+              Email address
+              <input
+                name="email"
+                type="email"
+                className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2"
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Password
+              <div className="relative mt-1.5">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  className="w-full rounded-lg border border-input bg-cream px-3 py-2.5 pr-16 outline-none ring-clay/30 focus:ring-2"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-clay"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </label>
+            {register && (
+              <label className="block text-sm font-medium">
+                Confirm password
+                <input
+                  name="confirmPassword"
+                  type="password"
+                  className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2"
+                  placeholder="••••••••"
+                  required
+                />
+              </label>
+            )}
+            {register && (
+              <div>
+                <p className="mb-2 text-sm font-medium">Favorite genres</p>
+                <div className="flex flex-wrap gap-2">
+                  {genres.slice(1, 6).map((g) => (
+                    <label key={g} className="cursor-pointer">
+                      <input
+                        name="favoriteGenres"
+                        value={g}
+                        type="checkbox"
+                        className="peer sr-only"
+                      />
+                      <span className="block rounded-full border border-line px-3 py-1.5 text-xs text-ink/65 transition peer-checked:border-clay peer-checked:bg-clay/10 peer-checked:text-clay">
+                        {g}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!register && (
+              <div className="flex items-center justify-between text-xs">
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" className="accent-clay" />
+                  Remember me
+                </label>
+                <Link to="/login" className="font-medium text-clay">
+                  Forgot password?
+                </Link>
+              </div>
+            )}
+            {authError && (
+              <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+                {authError}
+              </p>
+            )}
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? "Please wait" : register ? "Create my shelf" : "Sign in"} <ArrowRight />
+            </Button>
+          </form>
+          <p className="mt-6 text-center text-sm text-ink/55">
+            {register ? "Already have a shelf? " : "New to Athenaeum? "}
+            <Link to={register ? "/login" : "/register"} className="font-semibold text-clay">
+              {register ? "Sign in" : "Create an account"}
+            </Link>
+          </p>
+        </div>
+      </main>
+    </div>
+  );
 }
 
-function Stat({ label, value, note, tone = "paper", href }: { label: string; value: string; note: string; tone?: "paper" | "ink"; href?: string }) { const content = <><div className="flex items-center justify-between"><p className={cx("text-xs font-medium", tone === "ink" ? "text-cream/60" : "text-ink/50")}>{label}</p><span className={cx("grid size-7 place-items-center rounded-lg", tone === "ink" ? "bg-cream/10 text-cream/80" : "bg-clay/10 text-clay")}><BarChart3 className="size-4" /></span></div><p className="mt-3 font-display text-3xl font-semibold">{value}</p><p className={cx("mt-1 text-xs font-medium", tone === "ink" ? "text-cream/50" : "text-sage")}>{note}</p></>; const className = cx("block rounded-2xl border border-line p-5 transition hover:-translate-y-0.5 hover:shadow-md", tone === "ink" ? "border-ink bg-ink text-cream" : "bg-paper"); return href ? <a href={href} className={className}>{content}</a> : <div className={className}>{content}</div>; }
+function Stat({
+  label,
+  value,
+  note,
+  tone = "paper",
+  href,
+}: {
+  label: string;
+  value: string;
+  note: string;
+  tone?: "paper" | "ink";
+  href?: string;
+}) {
+  const content = (
+    <>
+      <div className="flex items-center justify-between">
+        <p className={cx("text-xs font-medium", tone === "ink" ? "text-cream/60" : "text-ink/50")}>
+          {label}
+        </p>
+        <span
+          className={cx(
+            "grid size-7 place-items-center rounded-lg",
+            tone === "ink" ? "bg-cream/10 text-cream/80" : "bg-clay/10 text-clay",
+          )}
+        >
+          <BarChart3 className="size-4" />
+        </span>
+      </div>
+      <p className="mt-3 font-display text-3xl font-semibold">{value}</p>
+      <p className={cx("mt-1 text-xs font-medium", tone === "ink" ? "text-cream/50" : "text-sage")}>
+        {note}
+      </p>
+    </>
+  );
+  const className = cx(
+    "block rounded-2xl border border-line p-5 transition hover:-translate-y-0.5 hover:shadow-md",
+    tone === "ink" ? "border-ink bg-ink text-cream" : "bg-paper",
+  );
+  return href ? (
+    <a href={href} className={className}>
+      {content}
+    </a>
+  ) : (
+    <div className={className}>{content}</div>
+  );
+}
 
-export function DashboardPage() { const currentUser = getCurrentUser(); const firstName = currentUser?.name?.split(" ")[0] ?? "Reader"; const [dashboard, setDashboard] = useState<DashboardResponse | null>(null); const [error, setError] = useState(""); const [loadingDashboard, setLoadingDashboard] = useState(true); useEffect(() => { setLoadingDashboard(true); getDashboard().then(setDashboard).catch((err) => setError(err instanceof Error ? err.message : "Could not load dashboard")).finally(() => setLoadingDashboard(false)); }, []); const activity = dashboard?.activity ?? []; const maxPages = Math.max(...activity.map(item => item.pages), 1); const genreMix = dashboard?.genreMix ?? []; const recent = dashboard?.readingList ?? []; const recommendations = dashboard?.recommendations ?? []; const hour = new Date().getHours(); const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; const recommendationSignals = [{ label: "Saved shelf", value: recent.length, copy: "Books you added to your shelf" }, { label: "Finished books", value: dashboard?.stats.booksRead ?? 0, copy: "Completed books improve matches" }, { label: "Your ratings", value: dashboard?.stats.averageRating ?? 0, copy: "High ratings shape suggestions" }, { label: "Genre profile", value: genreMix.length, copy: "Genres detected from your shelf" }]; function exportReport() { downloadReportPdf().catch((err) => setError(err instanceof Error ? err.message : "Could not export report")); } return <AppShell><PageHeader eyebrow={`${greeting}, ${firstName}`} title="Your reading pulse" action={<div className="flex gap-2"><Button variant="outline" onClick={exportReport}>Export report</Button><Button asChild><Link to="/browse"><Plus /> Add to shelf</Link></Button></div>} />{error && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{error}</div>}{loadingDashboard && <div className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-4">{[1,2,3,4].map(item => <div key={item} className="h-32 animate-pulse rounded-2xl border border-line bg-paper" />)}</div>}<div className="grid grid-cols-2 gap-4 lg:grid-cols-4"><Stat label="Books read" value={String(dashboard?.stats.booksRead ?? 0)} note="Open finished shelf" href="/reading-list?status=Finished" /><Stat label="Average rating" value={(dashboard?.stats.averageRating ?? 0).toFixed(1)} note="Open rated books" href="/reading-list?rated=true" /><Stat label="Currently reading" value={String(dashboard?.stats.currentlyReading ?? 0)} note="Open active shelf" href="/reading-list?status=Currently%20Reading" /><Stat label="Recommendation matches" value={String(recommendations.length)} note="Based on your taste" tone="ink" href="/browse" /></div><div className="mt-4 grid gap-4 lg:grid-cols-3"><section className="rounded-2xl border border-line bg-paper p-6 lg:col-span-2"><div className="mb-6 flex items-center justify-between"><div><h2 className="font-display text-xl font-semibold">Recommendation engine</h2><p className="text-xs text-ink/45">Signals the system uses to choose books for you</p></div><Compass className="size-5 text-clay" /></div><div className="grid gap-3 sm:grid-cols-2">{recommendationSignals.map(signal => <div key={signal.label} className="rounded-xl border border-line bg-cream p-4"><p className="text-xs font-semibold uppercase tracking-wide text-clay">{signal.label}</p><p className="mt-2 font-display text-3xl font-semibold">{signal.value}</p><p className="mt-1 text-xs text-ink/50">{signal.copy}</p></div>)}</div><div className="mt-5 rounded-xl bg-ink p-4 text-cream"><p className="text-xs font-semibold uppercase tracking-wide text-gold">How recommendations work</p><p className="mt-2 text-sm leading-relaxed text-cream/70">Athenaeum combines your saved shelf, finished books, ratings, likes, and favorite genres to recommend books that match your reading taste.</p></div></section><section className="rounded-2xl border border-line bg-paper p-6"><h2 className="font-display text-xl font-semibold">Genre mix</h2><p className="mb-5 text-xs text-ink/45">Where your shelf lives</p>{genreMix.length ? genreMix.map((item, i) => <div key={item.genre} className="mb-4"><div className="mb-1.5 flex justify-between text-xs font-medium"><span>{item.genre}</span><span className="text-ink/45">{item.percent}%</span></div><div className="h-2 rounded-full bg-line"><div className={cx("h-full rounded-full", ["bg-clay", "bg-gold", "bg-sage", "bg-ink/40", "bg-ink/20"][i % 5])} style={{ width: `${item.percent}%` }} /></div></div>) : <p className="text-sm text-ink/50">Save books to build your genre mix.</p>}</section></div><div className="mt-4 grid gap-4 lg:grid-cols-3"><section className="overflow-hidden rounded-2xl border border-line bg-paper lg:col-span-2"><div className="flex items-center justify-between px-6 pb-4 pt-6"><div><h2 className="font-display text-xl font-semibold">Recently added to your shelf</h2><p className="text-xs text-ink/45">Latest titles you saved or started</p></div><Link to="/reading-list" className="text-xs font-medium text-clay">View all →</Link></div>{recent.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-sm"><thead><tr className="border-y border-line text-left text-[11px] uppercase tracking-wide text-ink/40"><th className="px-6 py-3 font-medium">Title</th><th className="px-3 py-3 font-medium">Genre</th><th className="px-3 py-3 font-medium">Rating</th><th className="px-3 py-3 font-medium">Status</th><th className="px-6 py-3 text-right font-medium">Progress</th></tr></thead><tbody className="divide-y divide-line">{recent.map(item => <tr key={item.id} className="hover:bg-cream"><td className="px-6 py-3.5"><Link to="/books/$bookId" params={{ bookId: item.book.id }} className="font-medium hover:text-clay">{item.book.title}</Link><p className="text-xs text-ink/45">{item.book.author}</p></td><td className="px-3 py-3.5"><span className="rounded-full bg-clay/10 px-2.5 py-1 text-xs font-medium text-clay">{item.book.genre}</span></td><td className="px-3 py-3.5"><StarRating value={item.book.rating} /></td><td className="px-3 py-3.5"><span className="rounded-full bg-sage/15 px-2.5 py-1 text-xs font-medium text-sage">{item.status}</span></td><td className="px-6 py-3.5">{item.progress ? <div className="ml-auto w-24"><div className="h-1.5 rounded-full bg-line"><div className="h-full rounded-full bg-clay" style={{ width: `${item.progress}%` }} /></div><span className="mt-1 block text-right text-[10px] text-ink/40">{item.progress}%</span></div> : <span className="block text-right text-xs text-ink/30">-</span>}</td></tr>)}</tbody></table></div> : <div className="px-6 pb-6"><EmptyState title="Your shelf is empty" copy="Browse books and save one to make this dashboard yours." action={<Button asChild><Link to="/browse">Browse books</Link></Button>} /></div>}</section><section className="rounded-2xl border border-line bg-paper p-6"><h2 className="mb-4 font-display text-xl font-semibold">For you</h2><div className="space-y-4">{recommendations.map(book => <div key={book.id} className="flex gap-3"><div className="h-20 w-14 shrink-0 overflow-hidden rounded-md"><Cover book={book} /></div><div className="min-w-0"><Link to="/books/$bookId" params={{ bookId: book.id }} className="block truncate text-sm font-medium hover:text-clay">{book.title}</Link><p className="text-xs text-ink/45">{book.author}</p><p className="mt-1 text-[11px] text-clay">{book.reason}</p></div></div>)}</div><Button asChild variant="outline" className="mt-5 w-full"><Link to="/browse">See all recommendations</Link></Button></section></div></AppShell>; }
+export function DashboardPage() {
+  const currentUser = getCurrentUser();
+  const firstName = currentUser?.name?.split(" ")[0] ?? "Reader";
+  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
+  const [error, setError] = useState("");
+  const [loadingDashboard, setLoadingDashboard] = useState(true);
+  useEffect(() => {
+    setLoadingDashboard(true);
+    getDashboard()
+      .then(setDashboard)
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load dashboard"))
+      .finally(() => setLoadingDashboard(false));
+  }, []);
+  const activity = dashboard?.activity ?? [];
+  const maxPages = Math.max(...activity.map((item) => item.pages), 1);
+  const genreMix = dashboard?.genreMix ?? [];
+  const recent = dashboard?.readingList ?? [];
+  const recommendations = dashboard?.recommendations ?? [];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const recommendationSignals = [
+    { label: "Saved shelf", value: recent.length, copy: "Books you added to your shelf" },
+    {
+      label: "Finished books",
+      value: dashboard?.stats.booksRead ?? 0,
+      copy: "Completed books improve matches",
+    },
+    {
+      label: "Your ratings",
+      value: dashboard?.stats.averageRating ?? 0,
+      copy: "High ratings shape suggestions",
+    },
+    { label: "Genre profile", value: genreMix.length, copy: "Genres detected from your shelf" },
+  ];
+  function exportReport() {
+    downloadReportPdf().catch((err) =>
+      setError(err instanceof Error ? err.message : "Could not export report"),
+    );
+  }
+  return (
+    <AppShell>
+      <PageHeader
+        eyebrow={`${greeting}, ${firstName}`}
+        title="Your reading pulse"
+        action={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={exportReport}>
+              Export report
+            </Button>
+            <Button asChild>
+              <Link to="/browse">
+                <Plus /> Add to shelf
+              </Link>
+            </Button>
+          </div>
+        }
+      />
+      {error && (
+        <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      {loadingDashboard && (
+        <div className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="h-32 animate-pulse rounded-2xl border border-line bg-paper"
+            />
+          ))}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat
+          label="Books read"
+          value={String(dashboard?.stats.booksRead ?? 0)}
+          note="Open finished shelf"
+          href="/reading-list?status=Finished"
+        />
+        <Stat
+          label="Average rating"
+          value={(dashboard?.stats.averageRating ?? 0).toFixed(1)}
+          note="Open rated books"
+          href="/reading-list?rated=true"
+        />
+        <Stat
+          label="Currently reading"
+          value={String(dashboard?.stats.currentlyReading ?? 0)}
+          note="Open active shelf"
+          href="/reading-list?status=Currently%20Reading"
+        />
+        <Stat
+          label="Recommendation matches"
+          value={String(recommendations.length)}
+          note="Based on your taste"
+          tone="ink"
+          href="/browse"
+        />
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <section className="rounded-2xl border border-line bg-paper p-6 lg:col-span-2">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="font-display text-xl font-semibold">Recommendation engine</h2>
+              <p className="text-xs text-ink/45">Signals the system uses to choose books for you</p>
+            </div>
+            <Compass className="size-5 text-clay" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {recommendationSignals.map((signal) => (
+              <div key={signal.label} className="rounded-xl border border-line bg-cream p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-clay">
+                  {signal.label}
+                </p>
+                <p className="mt-2 font-display text-3xl font-semibold">{signal.value}</p>
+                <p className="mt-1 text-xs text-ink/50">{signal.copy}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 rounded-xl bg-ink p-4 text-cream">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold">
+              How recommendations work
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-cream/70">
+              Athenaeum combines your saved shelf, finished books, ratings, likes, and favorite
+              genres to recommend books that match your reading taste.
+            </p>
+          </div>
+        </section>
+        <section className="rounded-2xl border border-line bg-paper p-6">
+          <h2 className="font-display text-xl font-semibold">Genre mix</h2>
+          <p className="mb-5 text-xs text-ink/45">Where your shelf lives</p>
+          {genreMix.length ? (
+            genreMix.map((item, i) => (
+              <div key={item.genre} className="mb-4">
+                <div className="mb-1.5 flex justify-between text-xs font-medium">
+                  <span>{item.genre}</span>
+                  <span className="text-ink/45">{item.percent}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-line">
+                  <div
+                    className={cx(
+                      "h-full rounded-full",
+                      ["bg-clay", "bg-gold", "bg-sage", "bg-ink/40", "bg-ink/20"][i % 5],
+                    )}
+                    style={{ width: `${item.percent}%` }}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-ink/50">Save books to build your genre mix.</p>
+          )}
+        </section>
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <section className="overflow-hidden rounded-2xl border border-line bg-paper lg:col-span-2">
+          <div className="flex items-center justify-between px-6 pb-4 pt-6">
+            <div>
+              <h2 className="font-display text-xl font-semibold">Recently added to your shelf</h2>
+              <p className="text-xs text-ink/45">Latest titles you saved or started</p>
+            </div>
+            <Link to="/reading-list" className="text-xs font-medium text-clay">
+              View all →
+            </Link>
+          </div>
+          {recent.length ? (
+            <div className="max-h-96 overflow-auto overscroll-contain [scrollbar-gutter:stable]">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr className="border-y border-line text-left text-[11px] uppercase tracking-wide text-ink/40">
+                    <th className="px-6 py-3 font-medium">Title</th>
+                    <th className="px-3 py-3 font-medium">Genre</th>
+                    <th className="px-3 py-3 font-medium">Rating</th>
+                    <th className="px-3 py-3 font-medium">Status</th>
+                    <th className="px-6 py-3 text-right font-medium">Progress</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {recent.map((item) => (
+                    <tr key={item.id} className="hover:bg-cream">
+                      <td className="px-6 py-3.5">
+                        <Link
+                          to="/books/$bookId"
+                          params={{ bookId: item.book.id }}
+                          className="font-medium hover:text-clay"
+                        >
+                          {item.book.title}
+                        </Link>
+                        <p className="text-xs text-ink/45">{item.book.author}</p>
+                      </td>
+                      <td className="px-3 py-3.5">
+                        <span className="rounded-full bg-clay/10 px-2.5 py-1 text-xs font-medium text-clay">
+                          {item.book.genre}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3.5">
+                        <StarRating value={item.book.rating} />
+                      </td>
+                      <td className="px-3 py-3.5">
+                        <span className="rounded-full bg-sage/15 px-2.5 py-1 text-xs font-medium text-sage">
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3.5">
+                        {item.progress ? (
+                          <div className="ml-auto w-24">
+                            <div className="h-1.5 rounded-full bg-line">
+                              <div
+                                className="h-full rounded-full bg-clay"
+                                style={{ width: `${item.progress}%` }}
+                              />
+                            </div>
+                            <span className="mt-1 block text-right text-[10px] text-ink/40">
+                              {item.progress}%
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="block text-right text-xs text-ink/30">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="px-6 pb-6">
+              <EmptyState
+                title="Your shelf is empty"
+                copy="Browse books and save one to make this dashboard yours."
+                action={
+                  <Button asChild>
+                    <Link to="/browse">Browse books</Link>
+                  </Button>
+                }
+              />
+            </div>
+          )}
+        </section>
+        <section className="rounded-2xl border border-line bg-paper p-6">
+          <h2 className="mb-4 font-display text-xl font-semibold">For you</h2>
+          <div className="max-h-96 space-y-4 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable]">
+            {recommendations.map((book) => (
+              <div key={book.id} className="flex gap-3">
+                <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md">
+                  <Cover book={book} />
+                </div>
+                <div className="min-w-0">
+                  <Link
+                    to="/books/$bookId"
+                    params={{ bookId: book.id }}
+                    className="block truncate text-sm font-medium hover:text-clay"
+                  >
+                    {book.title}
+                  </Link>
+                  <p className="text-xs text-ink/45">{book.author}</p>
+                  <p className="mt-1 text-[11px] text-clay">{book.reason}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Button asChild variant="outline" className="mt-5 w-full">
+            <Link to="/browse">See all recommendations</Link>
+          </Button>
+        </section>
+      </div>
+    </AppShell>
+  );
+}
 
-export function BrowsePage() { const [query, setQuery] = useState(""); const [genre, setGenre] = useState("All genres"); const [sort, setSort] = useState("Recommended"); const [catalog, setCatalog] = useState<ApiBook[]>([]); const [apiGenres, setApiGenres] = useState<string[]>(genres); const [error, setError] = useState(""); const [loadingBooks, setLoadingBooks] = useState(true); useEffect(() => { getGenres().then(data => setApiGenres(data.genres)).catch(() => setApiGenres(genres)); }, []); useEffect(() => { const timer = window.setTimeout(() => { setLoadingBooks(true); getBooks({ search: query, genre, sort }).then(data => { setCatalog(data.books); setError(""); }).catch((err) => setError(err instanceof Error ? err.message : "Could not load books")).finally(() => setLoadingBooks(false)); }, 250); return () => window.clearTimeout(timer); }, [genre, query, sort]); return <AppShell><PageHeader eyebrow="The collection" title="Find your next book" description="Search a thoughtful shelf of contemporary fiction, atmospheric mysteries, and books with something to say." />{error && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{error}</div>}<div className="flex flex-col gap-3 rounded-2xl border border-line bg-paper p-4 md:flex-row"><label className="relative flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search titles or authors" className="w-full rounded-lg border border-input bg-cream py-2.5 pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-clay/30" /></label><div className="flex gap-2"><select value={genre} onChange={e => setGenre(e.target.value)} className="rounded-lg border border-input bg-cream px-3 py-2 text-sm outline-none">{apiGenres.map(g => <option key={g}>{g}</option>)}</select><select value={sort} onChange={e => setSort(e.target.value)} className="rounded-lg border border-input bg-cream px-3 py-2 text-sm outline-none"><option>Recommended</option><option>Popular</option><option>Newest</option><option>Highest Rated</option></select><Button variant="outline" size="icon" aria-label="More filters"><SlidersHorizontal /></Button></div></div><div className="mb-5 mt-8 flex items-center justify-between"><p className="text-sm text-ink/50">Showing <span className="font-semibold text-ink">{catalog.length}</span> books</p><div className="flex items-center gap-2 text-xs text-ink/50"><Star className="size-3.5 fill-gold text-gold" /> Highly rated by readers</div></div>{loadingBooks ? <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="space-y-3"><div className="aspect-[2/3] animate-pulse rounded-xl bg-paper" /><div className="h-4 animate-pulse rounded bg-paper" /><div className="h-3 w-2/3 animate-pulse rounded bg-paper" /></div>)}</div> : catalog.length ? <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">{catalog.map(book => <BookCard key={book.id} book={book} />)}</div> : <EmptyState title="No books found" copy="Try a different title, author, or genre." action={<Button onClick={() => { setQuery(""); setGenre("All genres"); }}>Clear filters</Button>} />}</AppShell>; }
+export function BrowsePage() {
+  const [query, setQuery] = useState("");
+  const [genre, setGenre] = useState("All genres");
+  const [sort, setSort] = useState("Recommended");
+  const [catalog, setCatalog] = useState<ApiBook[]>([]);
+  const [apiGenres, setApiGenres] = useState<string[]>(genres);
+  const [error, setError] = useState("");
+  const [loadingBooks, setLoadingBooks] = useState(true);
+  useEffect(() => {
+    getGenres()
+      .then((data) => setApiGenres(data.genres))
+      .catch(() => setApiGenres(genres));
+  }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setLoadingBooks(true);
+      getBooks({ search: query, genre, sort })
+        .then((data) => {
+          setCatalog(data.books);
+          setError("");
+        })
+        .catch((err) => setError(err instanceof Error ? err.message : "Could not load books"))
+        .finally(() => setLoadingBooks(false));
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [genre, query, sort]);
+  return (
+    <AppShell>
+      <PageHeader
+        eyebrow="The collection"
+        title="Find your next book"
+        description="Search a thoughtful shelf of contemporary fiction, atmospheric mysteries, and books with something to say."
+      />
+      {error && (
+        <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-paper p-4 md:flex-row">
+        <label className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search titles or authors"
+            className="w-full rounded-lg border border-input bg-cream py-2.5 pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-clay/30"
+          />
+        </label>
+        <div className="flex gap-2">
+          <select
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            className="rounded-lg border border-input bg-cream px-3 py-2 text-sm outline-none"
+          >
+            {apiGenres.map((g) => (
+              <option key={g}>{g}</option>
+            ))}
+          </select>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="rounded-lg border border-input bg-cream px-3 py-2 text-sm outline-none"
+          >
+            <option>Recommended</option>
+            <option>Popular</option>
+            <option>Newest</option>
+            <option>Highest Rated</option>
+          </select>
+          <Button variant="outline" size="icon" aria-label="More filters">
+            <SlidersHorizontal />
+          </Button>
+        </div>
+      </div>
+      <div className="mb-5 mt-8 flex items-center justify-between">
+        <p className="text-sm text-ink/50">
+          Showing <span className="font-semibold text-ink">{catalog.length}</span> books
+        </p>
+        <div className="flex items-center gap-2 text-xs text-ink/50">
+          <Star className="size-3.5 fill-gold text-gold" /> Highly rated by readers
+        </div>
+      </div>
+      {loadingBooks ? (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div key={i} className="space-y-3">
+              <div className="aspect-[2/3] animate-pulse rounded-xl bg-paper" />
+              <div className="h-4 animate-pulse rounded bg-paper" />
+              <div className="h-3 w-2/3 animate-pulse rounded bg-paper" />
+            </div>
+          ))}
+        </div>
+      ) : catalog.length ? (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+          {catalog.map((book) => (
+            <BookCard key={book.id} book={book} />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="No books found"
+          copy="Try a different title, author, or genre."
+          action={
+            <Button
+              onClick={() => {
+                setQuery("");
+                setGenre("All genres");
+              }}
+            >
+              Clear filters
+            </Button>
+          }
+        />
+      )}
+    </AppShell>
+  );
+}
 
-function EmptyState({ title, copy, action }: { title: string; copy: string; action?: React.ReactNode }) { return <div className="rounded-2xl border border-dashed border-line bg-paper px-6 py-16 text-center"><BookOpen className="mx-auto size-8 text-clay/60" /><h2 className="mt-4 font-display text-2xl font-semibold">{title}</h2><p className="mx-auto mt-2 max-w-sm text-sm text-ink/50">{copy}</p>{action && <div className="mt-5">{action}</div>}</div>; }
+function EmptyState({
+  title,
+  copy,
+  action,
+}: {
+  title: string;
+  copy: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-line bg-paper px-6 py-16 text-center">
+      <BookOpen className="mx-auto size-8 text-clay/60" />
+      <h2 className="mt-4 font-display text-2xl font-semibold">{title}</h2>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-ink/50">{copy}</p>
+      {action && <div className="mt-5">{action}</div>}
+    </div>
+  );
+}
 
-export function BookDetailsPage({ bookId }: { bookId: string }) { const [book, setBook] = useState<ApiBook | null>(null); const [similar, setSimilar] = useState<ApiBook[]>([]); const [saved, setSaved] = useState(false); const [saving, setSaving] = useState(false); const [error, setError] = useState(""); const [comments, setComments] = useState<BookComment[]>([]); const [commentText, setCommentText] = useState(""); useEffect(() => { getBook(bookId).then(data => { setBook(data.book); setSaved(Boolean(data.book.status)); setError(""); }).catch((err) => setError(err instanceof Error ? err.message : "Could not load book")); getBooks().then(data => setSimilar(data.books.filter(item => item.id !== bookId).slice(0, 4))).catch(() => setSimilar([])); getBookComments(bookId).then(data => setComments(data.comments)).catch(() => setComments([])); }, [bookId]); async function handleSave() { if (!book) return; setSaving(true); setSaved(true); try { await saveBook(book.id, { status: "Want to Read", progress: 0 }); } catch (error) { setSaved(false); } finally { setSaving(false); } } async function handleRate(value: number) { if (!book) return; setBook({ ...book, userRating: value }); try { const data = await rateBook(book.id, value); setBook(data.book); } catch (error) { setBook(book); } } async function handleLike() { if (!book) return; const previous = book; setBook({ ...book, likedByUser: !book.likedByUser, likeCount: (book.likeCount ?? 0) + (book.likedByUser ? -1 : 1) }); try { const data = await toggleBookLike(book.id); setBook({ ...book, likedByUser: data.liked, likeCount: data.likeCount }); } catch (error) { setBook(previous); } } async function handleComment(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!book || !commentText.trim()) return; const text = commentText.trim(); setCommentText(""); try { const data = await createBookComment(book.id, text); setComments([data.comment, ...comments]); setBook({ ...book, commentCount: (book.commentCount ?? 0) + 1 }); } catch (error) { setCommentText(text); } } if (error) return <AppShell><EmptyState title="Book not found" copy={error} action={<Button asChild><Link to="/browse">Back to browse</Link></Button>} /></AppShell>; if (!book) return <AppShell><EmptyState title="Loading book" copy="Getting this title from the catalog." /></AppShell>; return <AppShell><Link to="/browse" className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-ink/55 hover:text-clay">Back to browse</Link><div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]"><div className="mx-auto w-64 overflow-hidden rounded-2xl bg-paper shadow-xl ring-1 ring-ink/10 lg:mx-0 lg:w-full"><Cover book={book} /></div><div><div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-clay"><span>{book.genre}</span><span className="text-ink/25">·</span><span>{book.year}</span></div><h1 className="mt-3 max-w-2xl font-display text-5xl font-semibold leading-none">{book.title}</h1><p className="mt-3 text-lg text-ink/55">by {book.author}</p><div className="mt-5 flex items-center gap-4"><StarRating value={book.rating} /><span className="text-sm text-ink/45">Reader rating</span></div><p className="mt-7 max-w-2xl text-base leading-relaxed text-ink/70">{book.description}</p><div className="mt-6 flex flex-wrap gap-2">{book.tags.map(tag => <span key={tag} className="rounded-full border border-line bg-paper px-3 py-1.5 text-xs text-ink/60">{tag}</span>)}</div><div className="mt-8 flex flex-wrap gap-3"><Button onClick={handleSave} disabled={saved || saving}>{saved ? <Check /> : <BookMarked />}{saved ? "Saved to reading list" : saving ? "Saving" : "Save to reading list"}</Button><Button variant={book.likedByUser ? "secondary" : "outline"} onClick={handleLike}><Heart className={book.likedByUser ? "fill-current" : ""} />{book.likedByUser ? "Liked" : "Like"} · {book.likeCount ?? 0}</Button><div className="flex items-center gap-3 rounded-lg border border-line bg-paper px-3 py-2"><span className="text-sm font-medium text-ink/60">Your rating</span><RatingControl value={book.userRating ?? 0} onChange={handleRate} /></div></div><div className="mt-8 grid max-w-lg grid-cols-2 gap-4 border-y border-line py-5"><div><p className="text-xs uppercase tracking-wide text-ink/45">Publication year</p><p className="mt-1 font-display text-xl font-semibold">{book.year}</p></div><div><p className="text-xs uppercase tracking-wide text-ink/45">Page count</p><p className="mt-1 font-display text-xl font-semibold">{book.pages} pages</p></div></div></div></div><div className="mt-12 rounded-2xl border border-clay/20 bg-clay/5 p-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">Why this is for you</p><p className="mt-2 font-display text-2xl font-semibold">{book.reason}</p><p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/60">Your shelf leans toward books that take their time, build a vivid world, and reward a second look.</p></div><section className="mt-12 rounded-2xl border border-line bg-paper p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">Reader discussion</p><h2 className="mt-1 font-display text-3xl font-semibold">Comments</h2></div><span className="text-sm text-ink/45">{book.commentCount ?? comments.length} comments</span></div><form onSubmit={handleComment} className="mt-5 flex flex-col gap-3 sm:flex-row"><input value={commentText} onChange={event => setCommentText(event.target.value)} placeholder="Share what you think about this book" className="min-h-11 flex-1 rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /><Button type="submit">Post comment</Button></form><div className="mt-5 space-y-3">{comments.length ? comments.map(comment => <article key={comment.id} className="rounded-xl border border-line bg-cream p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold">{comment.user}</p><span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-medium text-gold">{comment.status}</span></div><p className="mt-2 text-sm leading-relaxed text-ink/65">{comment.text}</p></article>) : <p className="text-sm text-ink/50">No comments yet. Be the first reader to start the discussion.</p>}</div></section><section className="mt-12"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">Keep exploring</p><h2 className="mt-1 font-display text-3xl font-semibold">Similar books</h2></div><Link to="/browse" className="text-sm font-medium text-clay">Browse all →</Link></div><div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">{similar.map(b => <BookCard key={b.id} book={b} />)}</div></section></AppShell>; }
+export function BookDetailsPage({ bookId }: { bookId: string }) {
+  const [book, setBook] = useState<ApiBook | null>(null);
+  const [similar, setSimilar] = useState<ApiBook[]>([]);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [comments, setComments] = useState<BookComment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  useEffect(() => {
+    getBook(bookId)
+      .then((data) => {
+        setBook(data.book);
+        setSaved(Boolean(data.book.status));
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load book"));
+    getBooks()
+      .then((data) => setSimilar(data.books.filter((item) => item.id !== bookId).slice(0, 4)))
+      .catch(() => setSimilar([]));
+    getBookComments(bookId)
+      .then((data) => setComments(data.comments))
+      .catch(() => setComments([]));
+  }, [bookId]);
+  async function handleSave() {
+    if (!book) return;
+    setSaving(true);
+    setSaved(true);
+    try {
+      await saveBook(book.id, { status: "Want to Read", progress: 0 });
+    } catch (error) {
+      setSaved(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+  async function handleRate(value: number) {
+    if (!book) return;
+    setBook({ ...book, userRating: value });
+    try {
+      const data = await rateBook(book.id, value);
+      setBook(data.book);
+    } catch (error) {
+      setBook(book);
+    }
+  }
+  async function handleLike() {
+    if (!book) return;
+    const previous = book;
+    setBook({
+      ...book,
+      likedByUser: !book.likedByUser,
+      likeCount: (book.likeCount ?? 0) + (book.likedByUser ? -1 : 1),
+    });
+    try {
+      const data = await toggleBookLike(book.id);
+      setBook({ ...book, likedByUser: data.liked, likeCount: data.likeCount });
+    } catch (error) {
+      setBook(previous);
+    }
+  }
+  async function handleComment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!book || !commentText.trim()) return;
+    const text = commentText.trim();
+    setCommentText("");
+    try {
+      const data = await createBookComment(book.id, text);
+      setComments([data.comment, ...comments]);
+      setBook({ ...book, commentCount: (book.commentCount ?? 0) + 1 });
+    } catch (error) {
+      setCommentText(text);
+    }
+  }
+  if (error)
+    return (
+      <AppShell>
+        <EmptyState
+          title="Book not found"
+          copy={error}
+          action={
+            <Button asChild>
+              <Link to="/browse">Back to browse</Link>
+            </Button>
+          }
+        />
+      </AppShell>
+    );
+  if (!book)
+    return (
+      <AppShell>
+        <EmptyState title="Loading book" copy="Getting this title from the catalog." />
+      </AppShell>
+    );
+  return (
+    <AppShell>
+      <Link
+        to="/browse"
+        className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-ink/55 hover:text-clay"
+      >
+        Back to browse
+      </Link>
+      <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="mx-auto w-64 overflow-hidden rounded-2xl bg-paper shadow-xl ring-1 ring-ink/10 lg:mx-0 lg:w-full">
+          <Cover book={book} />
+        </div>
+        <div>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+            <span>{book.genre}</span>
+            <span className="text-ink/25">·</span>
+            <span>{book.year}</span>
+          </div>
+          <h1 className="mt-3 max-w-2xl font-display text-5xl font-semibold leading-none">
+            {book.title}
+          </h1>
+          <p className="mt-3 text-lg text-ink/55">by {book.author}</p>
+          <div className="mt-5 flex items-center gap-4">
+            <StarRating value={book.rating} />
+            <span className="text-sm text-ink/45">Reader rating</span>
+          </div>
+          <p className="mt-7 max-w-2xl text-base leading-relaxed text-ink/70">{book.description}</p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {book.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-line bg-paper px-3 py-1.5 text-xs text-ink/60"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button onClick={handleSave} disabled={saved || saving}>
+              {saved ? <Check /> : <BookMarked />}
+              {saved ? "Saved to reading list" : saving ? "Saving" : "Save to reading list"}
+            </Button>
+            <Button variant={book.likedByUser ? "secondary" : "outline"} onClick={handleLike}>
+              <Heart className={book.likedByUser ? "fill-current" : ""} />
+              {book.likedByUser ? "Liked" : "Like"} · {book.likeCount ?? 0}
+            </Button>
+            <div className="flex items-center gap-3 rounded-lg border border-line bg-paper px-3 py-2">
+              <span className="text-sm font-medium text-ink/60">Your rating</span>
+              <RatingControl value={book.userRating ?? 0} onChange={handleRate} />
+            </div>
+          </div>
+          <div className="mt-8 grid max-w-lg grid-cols-2 gap-4 border-y border-line py-5">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-ink/45">Publication year</p>
+              <p className="mt-1 font-display text-xl font-semibold">{book.year}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-ink/45">Page count</p>
+              <p className="mt-1 font-display text-xl font-semibold">{book.pages} pages</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-12 rounded-2xl border border-clay/20 bg-clay/5 p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+          Why this is for you
+        </p>
+        <p className="mt-2 font-display text-2xl font-semibold">{book.reason}</p>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink/60">
+          Your shelf leans toward books that take their time, build a vivid world, and reward a
+          second look.
+        </p>
+      </div>
+      <section className="mt-12 rounded-2xl border border-line bg-paper p-6">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+              Reader discussion
+            </p>
+            <h2 className="mt-1 font-display text-3xl font-semibold">Comments</h2>
+          </div>
+          <span className="text-sm text-ink/45">
+            {book.commentCount ?? comments.length} comments
+          </span>
+        </div>
+        <form onSubmit={handleComment} className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <input
+            value={commentText}
+            onChange={(event) => setCommentText(event.target.value)}
+            placeholder="Share what you think about this book"
+            className="min-h-11 flex-1 rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+          />
+          <Button type="submit">Post comment</Button>
+        </form>
+        <div className="mt-5 space-y-3">
+          {comments.length ? (
+            comments.map((comment) => (
+              <article key={comment.id} className="rounded-xl border border-line bg-cream p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">{comment.user}</p>
+                  <span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-medium text-gold">
+                    {comment.status}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-ink/65">{comment.text}</p>
+              </article>
+            ))
+          ) : (
+            <p className="text-sm text-ink/50">
+              No comments yet. Be the first reader to start the discussion.
+            </p>
+          )}
+        </div>
+      </section>
+      <section className="mt-12">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+              Keep exploring
+            </p>
+            <h2 className="mt-1 font-display text-3xl font-semibold">Similar books</h2>
+          </div>
+          <Link to="/browse" className="text-sm font-medium text-clay">
+            Browse all →
+          </Link>
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {similar.map((b) => (
+            <BookCard key={b.id} book={b} />
+          ))}
+        </div>
+      </section>
+    </AppShell>
+  );
+}
 
-export function ReadingListPage() { const initialStatus = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("status") : null; const ratedOnly = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("rated") === "true"; const [tab, setTab] = useState<BookStatus | "All">((initialStatus as BookStatus | "All") || "All"); const [saved, setSaved] = useState<ReadingListItem[]>([]); const [error, setError] = useState(""); useEffect(() => { getReadingList(tab).then(data => { setSaved(data.readingList); setError(""); }).catch((err) => setError(err instanceof Error ? err.message : "Could not load reading list")); }, [tab]); function updateLocal(id: string, patch: Partial<ReadingListItem>) { setSaved(items => items.map(item => item.id === id ? { ...item, ...patch } : item)); } async function changeStatus(item: ReadingListItem, status: BookStatus) { const progress = status === "Finished" ? 100 : status === "Want to Read" ? 0 : Math.max(item.progress, 10); updateLocal(item.id, { status, progress }); try { await updateReadingListItem(item.id, { status, progress }); } catch (err) { updateLocal(item.id, { status: item.status, progress: item.progress }); setError(err instanceof Error ? err.message : "Could not update book"); } } async function changeProgress(item: ReadingListItem, progress: number) { const status = progress >= 100 ? "Finished" : progress > 0 ? "Currently Reading" : item.status; updateLocal(item.id, { progress, status }); try { await updateReadingListItem(item.id, { progress, status }); } catch (err) { updateLocal(item.id, { status: item.status, progress: item.progress }); setError(err instanceof Error ? err.message : "Could not update progress"); } } async function rateSavedBook(item: ReadingListItem, value: number) { updateLocal(item.id, { book: { ...item.book, userRating: value } }); try { const data = await rateBook(item.book.id, value); updateLocal(item.id, { book: { ...item.book, ...data.book } }); } catch (err) { updateLocal(item.id, { book: item.book }); setError(err instanceof Error ? err.message : "Could not save rating"); } } async function removeItem(id: string) { await removeReadingListItem(id); setSaved(saved.filter(item => item.id !== id)); } return <AppShell><PageHeader eyebrow="Your shelf" title="Reading list" description="Mark books as currently reading or finished. The dashboard numbers update from these choices." action={<Button asChild><Link to="/browse"><Plus /> Add to shelf</Link></Button>} />{error && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{error}</div>}<div className="mb-7 flex gap-1 overflow-x-auto border-b border-line">{["All", "Want to Read", "Currently Reading", "Finished"].map(item => <button key={item} onClick={() => setTab(item as BookStatus | "All")} className={cx("whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium", tab === item ? "border-clay text-clay" : "border-transparent text-ink/50 hover:text-ink")}>{item}</button>)}</div>{(ratedOnly ? saved.filter(item => item.book.userRating) : saved).length ? <div className="space-y-3">{(ratedOnly ? saved.filter(item => item.book.userRating) : saved).map(item => <article key={item.id} className="flex gap-4 rounded-2xl border border-line bg-paper p-4"><div className="h-28 w-20 shrink-0 overflow-hidden rounded-lg"><Cover book={item.book} /></div><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div><Link to="/books/$bookId" params={{ bookId: item.book.id }} className="font-display text-xl font-semibold hover:text-clay">{item.book.title}</Link><p className="text-sm text-ink/50">{item.book.author} · {item.book.genre}</p></div><button aria-label={`Remove ${item.book.title}`} className="text-ink/35 hover:text-destructive" onClick={() => removeItem(item.id)}><Trash2 className="size-4" /></button></div><p className="mt-3 hidden max-w-2xl text-sm leading-relaxed text-ink/55 sm:block">{item.book.description}</p><div className="mt-4 grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)]"><label className="text-xs font-semibold uppercase tracking-wide text-ink/45">Shelf status<select value={item.status} onChange={event => changeStatus(item, event.target.value as BookStatus)} className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2 text-sm normal-case tracking-normal text-ink"><option>Want to Read</option><option>Currently Reading</option><option>Finished</option></select></label><label className="text-xs font-semibold uppercase tracking-wide text-ink/45">Reading progress<div className="mt-2 flex items-center gap-3"><input type="range" min="0" max="100" step="5" value={item.progress} onChange={event => changeProgress(item, Number(event.target.value))} className="w-full accent-clay" /><span className="w-12 text-right text-sm font-semibold text-ink">{item.progress}%</span></div></label></div><div className="mt-4 flex flex-wrap items-center gap-3"><span className={cx("rounded-full px-2.5 py-1 text-xs font-medium", item.status === "Finished" ? "bg-clay/10 text-clay" : item.status === "Currently Reading" ? "bg-sage/15 text-sage" : "bg-ink/5 text-ink/60")}>{item.status === "Finished" ? "Read" : item.status}</span><StarRating value={item.book.rating} /><div className="flex items-center gap-2"><span className="text-xs text-ink/45">Your rating</span><RatingControl value={item.book.userRating ?? 0} onChange={(value) => rateSavedBook(item, value)} /></div><div className="flex min-w-40 flex-1 items-center gap-2"><div className="h-1.5 flex-1 rounded-full bg-line"><div className="h-full rounded-full bg-clay" style={{ width: `${item.progress}%` }} /></div><span className="text-xs text-ink/45">{item.progress}%</span></div></div></div></article>)}</div> : <EmptyState title={ratedOnly ? "No rated books yet" : "This shelf is waiting"} copy={ratedOnly ? "Rate a book from your shelf and it will appear here." : "Save a book from Browse Books and it will appear here."} action={<Button asChild><Link to="/browse">Browse books</Link></Button>} />}</AppShell>; }
+export function ReadingListPage() {
+  const initialStatus =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("status")
+      : null;
+  const ratedOnly =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("rated") === "true";
+  const [tab, setTab] = useState<BookStatus | "All">(
+    (initialStatus as BookStatus | "All") || "All",
+  );
+  const [saved, setSaved] = useState<ReadingListItem[]>([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    getReadingList(tab)
+      .then((data) => {
+        setSaved(data.readingList);
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load reading list"));
+  }, [tab]);
+  function updateLocal(id: string, patch: Partial<ReadingListItem>) {
+    setSaved((items) => items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  }
+  async function changeStatus(item: ReadingListItem, status: BookStatus) {
+    const progress =
+      status === "Finished" ? 100 : status === "Want to Read" ? 0 : Math.max(item.progress, 10);
+    updateLocal(item.id, { status, progress });
+    try {
+      await updateReadingListItem(item.id, { status, progress });
+    } catch (err) {
+      updateLocal(item.id, { status: item.status, progress: item.progress });
+      setError(err instanceof Error ? err.message : "Could not update book");
+    }
+  }
+  async function changeProgress(item: ReadingListItem, progress: number) {
+    const status = progress >= 100 ? "Finished" : progress > 0 ? "Currently Reading" : item.status;
+    updateLocal(item.id, { progress, status });
+    try {
+      await updateReadingListItem(item.id, { progress, status });
+    } catch (err) {
+      updateLocal(item.id, { status: item.status, progress: item.progress });
+      setError(err instanceof Error ? err.message : "Could not update progress");
+    }
+  }
+  async function rateSavedBook(item: ReadingListItem, value: number) {
+    updateLocal(item.id, { book: { ...item.book, userRating: value } });
+    try {
+      const data = await rateBook(item.book.id, value);
+      updateLocal(item.id, { book: { ...item.book, ...data.book } });
+    } catch (err) {
+      updateLocal(item.id, { book: item.book });
+      setError(err instanceof Error ? err.message : "Could not save rating");
+    }
+  }
+  async function removeItem(id: string) {
+    await removeReadingListItem(id);
+    setSaved(saved.filter((item) => item.id !== id));
+  }
+  return (
+    <AppShell>
+      <PageHeader
+        eyebrow="Your shelf"
+        title="Reading list"
+        description="Mark books as currently reading or finished. The dashboard numbers update from these choices."
+        action={
+          <Button asChild>
+            <Link to="/browse">
+              <Plus /> Add to shelf
+            </Link>
+          </Button>
+        }
+      />
+      {error && (
+        <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <div className="mb-7 flex gap-1 overflow-x-auto border-b border-line">
+        {["All", "Want to Read", "Currently Reading", "Finished"].map((item) => (
+          <button
+            key={item}
+            onClick={() => setTab(item as BookStatus | "All")}
+            className={cx(
+              "whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium",
+              tab === item
+                ? "border-clay text-clay"
+                : "border-transparent text-ink/50 hover:text-ink",
+            )}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+      {(ratedOnly ? saved.filter((item) => item.book.userRating) : saved).length ? (
+        <div className="space-y-3">
+          {(ratedOnly ? saved.filter((item) => item.book.userRating) : saved).map((item) => (
+            <article
+              key={item.id}
+              className="flex gap-4 rounded-2xl border border-line bg-paper p-4"
+            >
+              <div className="h-28 w-20 shrink-0 overflow-hidden rounded-lg">
+                <Cover book={item.book} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Link
+                      to="/books/$bookId"
+                      params={{ bookId: item.book.id }}
+                      className="font-display text-xl font-semibold hover:text-clay"
+                    >
+                      {item.book.title}
+                    </Link>
+                    <p className="text-sm text-ink/50">
+                      {item.book.author} · {item.book.genre}
+                    </p>
+                  </div>
+                  <button
+                    aria-label={`Remove ${item.book.title}`}
+                    className="text-ink/35 hover:text-destructive"
+                    onClick={() => removeItem(item.id)}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+                <p className="mt-3 hidden max-w-2xl text-sm leading-relaxed text-ink/55 sm:block">
+                  {item.book.description}
+                </p>
+                <div className="mt-4 grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)]">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-ink/45">
+                    Shelf status
+                    <select
+                      value={item.status}
+                      onChange={(event) => changeStatus(item, event.target.value as BookStatus)}
+                      className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2 text-sm normal-case tracking-normal text-ink"
+                    >
+                      <option>Want to Read</option>
+                      <option>Currently Reading</option>
+                      <option>Finished</option>
+                    </select>
+                  </label>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-ink/45">
+                    Reading progress
+                    <div className="mt-2 flex items-center gap-3">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="5"
+                        value={item.progress}
+                        onChange={(event) => changeProgress(item, Number(event.target.value))}
+                        className="w-full accent-clay"
+                      />
+                      <span className="w-12 text-right text-sm font-semibold text-ink">
+                        {item.progress}%
+                      </span>
+                    </div>
+                  </label>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <span
+                    className={cx(
+                      "rounded-full px-2.5 py-1 text-xs font-medium",
+                      item.status === "Finished"
+                        ? "bg-clay/10 text-clay"
+                        : item.status === "Currently Reading"
+                          ? "bg-sage/15 text-sage"
+                          : "bg-ink/5 text-ink/60",
+                    )}
+                  >
+                    {item.status === "Finished" ? "Read" : item.status}
+                  </span>
+                  <StarRating value={item.book.rating} />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-ink/45">Your rating</span>
+                    <RatingControl
+                      value={item.book.userRating ?? 0}
+                      onChange={(value) => rateSavedBook(item, value)}
+                    />
+                  </div>
+                  <div className="flex min-w-40 flex-1 items-center gap-2">
+                    <div className="h-1.5 flex-1 rounded-full bg-line">
+                      <div
+                        className="h-full rounded-full bg-clay"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-ink/45">{item.progress}%</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title={ratedOnly ? "No rated books yet" : "This shelf is waiting"}
+          copy={
+            ratedOnly
+              ? "Rate a book from your shelf and it will appear here."
+              : "Save a book from Browse Books and it will appear here."
+          }
+          action={
+            <Button asChild>
+              <Link to="/browse">Browse books</Link>
+            </Button>
+          }
+        />
+      )}
+    </AppShell>
+  );
+}
 
-export function ProfilePage() { const [saved, setSaved] = useState(false); const [accountMessage, setAccountMessage] = useState(""); const [showPasswordForm, setShowPasswordForm] = useState(false); const [currentPassword, setCurrentPassword] = useState(""); const [newPassword, setNewPassword] = useState(""); const [confirmPassword, setConfirmPassword] = useState(""); const navigate = useNavigate(); const currentUser = getCurrentUser(); async function handleDownloadData() { try { const data = await exportAccountData(); const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "athenaeum-account-data.json"; link.click(); URL.revokeObjectURL(url); setAccountMessage("Your account data was downloaded."); } catch (err) { setAccountMessage(err instanceof Error ? err.message : "Could not download data"); } } async function handleDeleteAccount() { if (!window.confirm("Delete your account permanently? This cannot be undone.")) return; try { await deleteMyAccount(); signOut(); navigate({ to: "/register" }); } catch (err) { setAccountMessage(err instanceof Error ? err.message : "Could not delete account"); } } async function handleChangePassword(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (newPassword !== confirmPassword) { setAccountMessage("New passwords do not match."); return; } if (newPassword.length < 6) { setAccountMessage("New password must be at least 6 characters."); return; } try { await changeMyPassword({ currentPassword, newPassword }); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); setShowPasswordForm(false); setAccountMessage("Password changed successfully."); } catch (err) { setAccountMessage(err instanceof Error ? err.message : "Could not change password"); } } const isAdmin = currentUser?.role === "Admin"; const displayName = currentUser?.name ?? "Reader"; const displayEmail = currentUser?.email ?? ""; const favoriteGenres = currentUser?.favoriteGenres?.length ? currentUser.favoriteGenres : genres.slice(1, 6); return <AppShell admin={isAdmin}><PageHeader eyebrow={isAdmin ? "Admin profile" : "Your reader profile"} title={displayName} description={isAdmin ? "Manage your admin account, password, data export, and database access identity." : "Shape the shelf around your taste, habits, and the kinds of stories you want more of."} action={<Button onClick={() => setSaved(!saved)}>{saved ? <Check /> : <Edit3 />}{saved ? "Changes saved" : "Edit profile"}</Button>} /><div className="grid gap-4 lg:grid-cols-3"><section className="rounded-2xl border border-line bg-paper p-6 lg:col-span-2"><div className="flex items-center gap-4 border-b border-line pb-6"><AccountAvatar large /><div><h2 className="font-display text-2xl font-semibold">{displayName}</h2><p className="text-sm text-ink/50">{displayEmail}</p><p className="mt-2 text-xs text-clay">{isAdmin ? "Admin account" : "Reader account"}</p></div></div><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium">Full name<input defaultValue={displayName} className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">Email address<input defaultValue={displayEmail} className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label></div><div className="mt-7"><h3 className="font-display text-xl font-semibold">Favorite genres</h3><div className="mt-3 flex flex-wrap gap-2">{favoriteGenres.map(g => <span key={g} className="rounded-full bg-clay/10 px-3 py-1.5 text-xs font-medium text-clay">{g}</span>)}</div></div></section><section className="rounded-2xl border border-line bg-paper p-6"><h2 className="font-display text-xl font-semibold">{isAdmin ? "Admin access" : "Reading preferences"}</h2><div className="mt-5 space-y-5 text-sm"><label className="flex items-center justify-between gap-4"><span><span className="block font-medium">{isAdmin ? "Admin dashboard" : "Weekly recommendations"}</span><span className="text-xs text-ink/45">{isAdmin ? "Access overview, books, readers, reviews, and saved shelves" : "A thoughtful shortlist every Monday"}</span></span><input type="checkbox" defaultChecked className="size-4 accent-clay" /></label><label className="flex items-center justify-between gap-4"><span><span className="block font-medium">{isAdmin ? "Book management" : "New release alerts"}</span><span className="text-xs text-ink/45">{isAdmin ? "Add and update the catalogue" : "Only for favorite genres"}</span></span><input type="checkbox" defaultChecked className="size-4 accent-clay" /></label><label className="flex items-center justify-between gap-4"><span><span className="block font-medium">{isAdmin ? "Reader activity" : "Community activity"}</span><span className="text-xs text-ink/45">{isAdmin ? "Monitor comments, ratings, likes, and saved books" : "Reviews and reading notes"}</span></span><input type="checkbox" className="size-4 accent-clay" /></label></div></section></div><section className="mt-4 rounded-2xl border border-line bg-paper p-6"><div className="flex items-center justify-between"><div><h2 className="font-display text-xl font-semibold">Account settings</h2><p className="mt-1 text-sm text-ink/50">Manage your account and privacy preferences.</p></div><Settings className="size-5 text-ink/35" /></div>{accountMessage && <p className="mt-4 rounded-lg border border-line bg-cream p-3 text-sm text-ink/60">{accountMessage}</p>}<div className="mt-5 grid gap-3 sm:grid-cols-3"><Button variant="outline" onClick={() => setShowPasswordForm(!showPasswordForm)}>Change password</Button><Button variant="outline" onClick={handleDownloadData}>Download my data</Button><Button variant="outline" className="text-destructive" onClick={handleDeleteAccount}>Delete account</Button></div>{showPasswordForm && <form onSubmit={handleChangePassword} className="mt-5 grid gap-3 rounded-xl border border-line bg-cream p-4 sm:grid-cols-3"><label className="text-sm font-medium">Current password<input value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} type="password" required className="mt-1.5 w-full rounded-lg border border-input bg-paper px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">New password<input value={newPassword} onChange={event => setNewPassword(event.target.value)} type="password" required className="mt-1.5 w-full rounded-lg border border-input bg-paper px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">Confirm password<input value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} type="password" required className="mt-1.5 w-full rounded-lg border border-input bg-paper px-3 py-2.5 text-sm" /></label><div className="flex gap-2 sm:col-span-3"><Button type="submit">Save password</Button><Button type="button" variant="outline" onClick={() => setShowPasswordForm(false)}>Cancel</Button></div></form>}</section></AppShell>; }
+export function ProfilePage() {
+  const [saved, setSaved] = useState(false);
+  const [accountMessage, setAccountMessage] = useState("");
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+  const currentUser = getCurrentUser();
+  async function handleDownloadData() {
+    try {
+      const data = await exportAccountData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "athenaeum-account-data.json";
+      link.click();
+      URL.revokeObjectURL(url);
+      setAccountMessage("Your account data was downloaded.");
+    } catch (err) {
+      setAccountMessage(err instanceof Error ? err.message : "Could not download data");
+    }
+  }
+  async function handleDeleteAccount() {
+    if (!window.confirm("Delete your account permanently? This cannot be undone.")) return;
+    try {
+      await deleteMyAccount();
+      signOut();
+      navigate({ to: "/register" });
+    } catch (err) {
+      setAccountMessage(err instanceof Error ? err.message : "Could not delete account");
+    }
+  }
+  async function handleChangePassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setAccountMessage("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setAccountMessage("New password must be at least 6 characters.");
+      return;
+    }
+    try {
+      await changeMyPassword({ currentPassword, newPassword });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswordForm(false);
+      setAccountMessage("Password changed successfully.");
+    } catch (err) {
+      setAccountMessage(err instanceof Error ? err.message : "Could not change password");
+    }
+  }
+  const isAdmin = currentUser?.role === "Admin";
+  const displayName = currentUser?.name ?? "Reader";
+  const displayEmail = currentUser?.email ?? "";
+  const favoriteGenres = currentUser?.favoriteGenres?.length
+    ? currentUser.favoriteGenres
+    : genres.slice(1, 6);
+  return (
+    <AppShell admin={isAdmin}>
+      <PageHeader
+        eyebrow={isAdmin ? "Admin profile" : "Your reader profile"}
+        title={displayName}
+        description={
+          isAdmin
+            ? "Manage your admin account, password, data export, and database access identity."
+            : "Shape the shelf around your taste, habits, and the kinds of stories you want more of."
+        }
+        action={
+          <Button onClick={() => setSaved(!saved)}>
+            {saved ? <Check /> : <Edit3 />}
+            {saved ? "Changes saved" : "Edit profile"}
+          </Button>
+        }
+      />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <section className="rounded-2xl border border-line bg-paper p-6 lg:col-span-2">
+          <div className="flex items-center gap-4 border-b border-line pb-6">
+            <AccountAvatar large />
+            <div>
+              <h2 className="font-display text-2xl font-semibold">{displayName}</h2>
+              <p className="text-sm text-ink/50">{displayEmail}</p>
+              <p className="mt-2 text-xs text-clay">
+                {isAdmin ? "Admin account" : "Reader account"}
+              </p>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-medium">
+              Full name
+              <input
+                defaultValue={displayName}
+                className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="text-sm font-medium">
+              Email address
+              <input
+                defaultValue={displayEmail}
+                className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+              />
+            </label>
+          </div>
+          <div className="mt-7">
+            <h3 className="font-display text-xl font-semibold">Favorite genres</h3>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {favoriteGenres.map((g) => (
+                <span
+                  key={g}
+                  className="rounded-full bg-clay/10 px-3 py-1.5 text-xs font-medium text-clay"
+                >
+                  {g}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="rounded-2xl border border-line bg-paper p-6">
+          <h2 className="font-display text-xl font-semibold">
+            {isAdmin ? "Admin access" : "Reading preferences"}
+          </h2>
+          <div className="mt-5 space-y-5 text-sm">
+            <label className="flex items-center justify-between gap-4">
+              <span>
+                <span className="block font-medium">
+                  {isAdmin ? "Admin dashboard" : "Weekly recommendations"}
+                </span>
+                <span className="text-xs text-ink/45">
+                  {isAdmin
+                    ? "Access overview, books, readers, reviews, and saved shelves"
+                    : "A thoughtful shortlist every Monday"}
+                </span>
+              </span>
+              <input type="checkbox" defaultChecked className="size-4 accent-clay" />
+            </label>
+            <label className="flex items-center justify-between gap-4">
+              <span>
+                <span className="block font-medium">
+                  {isAdmin ? "Book management" : "New release alerts"}
+                </span>
+                <span className="text-xs text-ink/45">
+                  {isAdmin ? "Add and update the catalogue" : "Only for favorite genres"}
+                </span>
+              </span>
+              <input type="checkbox" defaultChecked className="size-4 accent-clay" />
+            </label>
+            <label className="flex items-center justify-between gap-4">
+              <span>
+                <span className="block font-medium">
+                  {isAdmin ? "Reader activity" : "Community activity"}
+                </span>
+                <span className="text-xs text-ink/45">
+                  {isAdmin
+                    ? "Monitor comments, ratings, likes, and saved books"
+                    : "Reviews and reading notes"}
+                </span>
+              </span>
+              <input type="checkbox" className="size-4 accent-clay" />
+            </label>
+          </div>
+        </section>
+      </div>
+      <section className="mt-4 rounded-2xl border border-line bg-paper p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-xl font-semibold">Account settings</h2>
+            <p className="mt-1 text-sm text-ink/50">Manage your account and privacy preferences.</p>
+          </div>
+          <Settings className="size-5 text-ink/35" />
+        </div>
+        {accountMessage && (
+          <p className="mt-4 rounded-lg border border-line bg-cream p-3 text-sm text-ink/60">
+            {accountMessage}
+          </p>
+        )}
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <Button variant="outline" onClick={() => setShowPasswordForm(!showPasswordForm)}>
+            Change password
+          </Button>
+          <Button variant="outline" onClick={handleDownloadData}>
+            Download my data
+          </Button>
+          <Button variant="outline" className="text-destructive" onClick={handleDeleteAccount}>
+            Delete account
+          </Button>
+        </div>
+        {showPasswordForm && (
+          <form
+            onSubmit={handleChangePassword}
+            className="mt-5 grid gap-3 rounded-xl border border-line bg-cream p-4 sm:grid-cols-3"
+          >
+            <label className="text-sm font-medium">
+              Current password
+              <input
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                type="password"
+                required
+                className="mt-1.5 w-full rounded-lg border border-input bg-paper px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="text-sm font-medium">
+              New password
+              <input
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                type="password"
+                required
+                className="mt-1.5 w-full rounded-lg border border-input bg-paper px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="text-sm font-medium">
+              Confirm password
+              <input
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                type="password"
+                required
+                className="mt-1.5 w-full rounded-lg border border-input bg-paper px-3 py-2.5 text-sm"
+              />
+            </label>
+            <div className="flex gap-2 sm:col-span-3">
+              <Button type="submit">Save password</Button>
+              <Button type="button" variant="outline" onClick={() => setShowPasswordForm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        )}
+      </section>
+    </AppShell>
+  );
+}
 
-export function AdminOverviewPage() { const [overview, setOverview] = useState<AdminOverviewResponse | null>(null); const [error, setError] = useState(""); useEffect(() => { getAdminOverview().then(data => { setOverview(data); setError(""); }).catch(err => setError(err instanceof Error ? err.message : "Could not load admin overview")); }, []); const stats = overview?.stats; const topGenres = overview?.topGenres?.length ? overview.topGenres : []; const recentActivity = overview?.recentActivity ?? []; return <AppShell admin><PageHeader eyebrow="Admin studio" title="Keep the shelf thoughtful." description="A quick view of the people, books, and recommendations shaping Athenaeum." action={<Button asChild><Link to="/admin/books"><Plus /> Add book</Link></Button>} />{error && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{error}</div>}<div className="grid grid-cols-2 gap-4 lg:grid-cols-4"><Stat label="Total users" value={stats ? String(stats.totalUsers) : "..."} note="Open reader accounts" href="/admin/users" /><Stat label="Total books" value={stats ? String(stats.totalBooks) : "..."} note="Open catalogue" href="/admin/books" /><Stat label="Total ratings" value={stats ? String(stats.totalReviews) : "..."} note={`${stats?.pendingComments ?? 0} comments pending`} href="/admin/reviews" /><Stat label="Saved books" value={stats ? String(stats.activeRecommendations) : "..."} note={`${stats?.totalLikes ?? 0} likes recorded`} tone="ink" href="/admin/saved-books" /></div><div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]"><section className="rounded-2xl border border-line bg-paper p-6"><div className="flex items-center justify-between"><div><h2 className="font-display text-xl font-semibold">Platform health</h2><p className="text-xs text-ink/45">Live activity from your database</p></div><BarChart3 className="size-5 text-clay" /></div><div className="mt-5 grid gap-3 sm:grid-cols-2"><Link to="/admin/reviews" className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"><p className="text-xs text-ink/45">Comments waiting</p><p className="mt-1 font-display text-3xl font-semibold">{stats?.pendingComments ?? 0}</p></Link><Link to="/admin/reviews" className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"><p className="text-xs text-ink/45">Book likes</p><p className="mt-1 font-display text-3xl font-semibold">{stats?.totalLikes ?? 0}</p></Link><Link to="/admin/saved-books" className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"><p className="text-xs text-ink/45">Reader shelves</p><p className="mt-1 font-display text-3xl font-semibold">{stats?.activeRecommendations ?? 0}</p></Link><Link to="/admin/books" className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"><p className="text-xs text-ink/45">Match quality</p><p className="mt-1 font-display text-3xl font-semibold">{overview?.recommendationHealth ?? 0}%</p></Link></div><div className="mt-6 border-t border-line pt-5"><h3 className="font-display text-lg font-semibold">Recent activity</h3><div className="mt-3 space-y-2">{recentActivity.length ? recentActivity.map(item => <div key={item.id} className="flex items-center justify-between rounded-lg bg-cream px-3 py-2 text-sm"><span className="text-ink/70">{item.label}</span><span className="text-xs text-ink/40">{new Date(item.createdAt).toLocaleDateString()}</span></div>) : <p className="text-sm text-ink/45">Activity will appear after readers join, save books, and comment.</p>}</div></div></section><section className="rounded-2xl border border-line bg-paper p-6"><h2 className="font-display text-xl font-semibold">Quick actions</h2><div className="mt-5 grid gap-2"><Button asChild variant="outline" className="justify-start"><Link to="/admin/books"><Plus /> Add a new book <ArrowRight className="ml-auto" /></Link></Button><Button asChild variant="outline" className="justify-start"><Link to="/admin/users"><Users /> Manage users <ArrowRight className="ml-auto" /></Link></Button><Button asChild variant="outline" className="justify-start"><Link to="/admin/reviews"><Star /> Review comments <ArrowRight className="ml-auto" /></Link></Button></div><div className="mt-6 rounded-xl bg-clay/10 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-clay">Recommendation health</p><p className="mt-1 font-display text-3xl font-semibold">{overview?.recommendationHealth ?? 0}%</p><p className="mt-1 text-xs text-ink/55">Based on reader ratings and saved recommendations.</p></div></section></div><section className="mt-4 rounded-2xl border border-line bg-paper p-6"><div className="flex items-center justify-between"><div><h2 className="font-display text-xl font-semibold">Top genres</h2><p className="text-xs text-ink/45">Reader interest across the platform</p></div><BarChart3 className="size-5 text-clay" /></div><div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-5">{topGenres.length ? topGenres.map((item, i) => <div key={item.genre} className="border-l-2 border-clay/40 pl-3"><p className="font-display text-xl font-semibold">{item.percent}%</p><p className="text-xs text-ink/50">{item.genre}</p><div className="mt-3 h-1 rounded-full bg-line"><div className={cx("h-full rounded-full", ["bg-clay", "bg-gold", "bg-sage", "bg-ink/40", "bg-ink/20"][i % 5])} style={{ width: `${item.percent}%` }} /></div></div>) : <p className="col-span-full text-sm text-ink/50">Genre stats will appear after readers save and rate books.</p>}</div></section></AppShell>; }
+export function AdminOverviewPage() {
+  const [overview, setOverview] = useState<AdminOverviewResponse | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    getAdminOverview()
+      .then((data) => {
+        setOverview(data);
+        setError("");
+      })
+      .catch((err) =>
+        setError(err instanceof Error ? err.message : "Could not load admin overview"),
+      );
+  }, []);
+  const stats = overview?.stats;
+  const topGenres = overview?.topGenres?.length ? overview.topGenres : [];
+  const recentActivity = overview?.recentActivity ?? [];
+  return (
+    <AppShell admin>
+      <PageHeader
+        eyebrow="Admin studio"
+        title="Keep the shelf thoughtful."
+        description="A quick view of the people, books, and recommendations shaping Athenaeum."
+        action={
+          <Button asChild>
+            <Link to="/admin/books">
+              <Plus /> Add book
+            </Link>
+          </Button>
+        }
+      />
+      {error && (
+        <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat
+          label="Total users"
+          value={stats ? String(stats.totalUsers) : "..."}
+          note="Open reader accounts"
+          href="/admin/users"
+        />
+        <Stat
+          label="Total books"
+          value={stats ? String(stats.totalBooks) : "..."}
+          note="Open catalogue"
+          href="/admin/books"
+        />
+        <Stat
+          label="Total ratings"
+          value={stats ? String(stats.totalReviews) : "..."}
+          note={`${stats?.pendingComments ?? 0} comments pending`}
+          href="/admin/reviews"
+        />
+        <Stat
+          label="Saved books"
+          value={stats ? String(stats.activeRecommendations) : "..."}
+          note={`${stats?.totalLikes ?? 0} likes recorded`}
+          tone="ink"
+          href="/admin/saved-books"
+        />
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="rounded-2xl border border-line bg-paper p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-display text-xl font-semibold">Platform health</h2>
+              <p className="text-xs text-ink/45">Live activity from your database</p>
+            </div>
+            <BarChart3 className="size-5 text-clay" />
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/admin/reviews"
+              className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+            >
+              <p className="text-xs text-ink/45">Comments waiting</p>
+              <p className="mt-1 font-display text-3xl font-semibold">
+                {stats?.pendingComments ?? 0}
+              </p>
+            </Link>
+            <Link
+              to="/admin/reviews"
+              className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+            >
+              <p className="text-xs text-ink/45">Book likes</p>
+              <p className="mt-1 font-display text-3xl font-semibold">{stats?.totalLikes ?? 0}</p>
+            </Link>
+            <Link
+              to="/admin/saved-books"
+              className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+            >
+              <p className="text-xs text-ink/45">Reader shelves</p>
+              <p className="mt-1 font-display text-3xl font-semibold">
+                {stats?.activeRecommendations ?? 0}
+              </p>
+            </Link>
+            <Link
+              to="/admin/books"
+              className="block rounded-xl bg-cream p-4 transition hover:-translate-y-0.5 hover:shadow-sm"
+            >
+              <p className="text-xs text-ink/45">Match quality</p>
+              <p className="mt-1 font-display text-3xl font-semibold">
+                {overview?.recommendationHealth ?? 0}%
+              </p>
+            </Link>
+          </div>
+          <div className="mt-6 border-t border-line pt-5">
+            <h3 className="font-display text-lg font-semibold">Recent activity</h3>
+            <div className="mt-3 space-y-2">
+              {recentActivity.length ? (
+                recentActivity.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-lg bg-cream px-3 py-2 text-sm"
+                  >
+                    <span className="text-ink/70">{item.label}</span>
+                    <span className="text-xs text-ink/40">
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-ink/45">
+                  Activity will appear after readers join, save books, and comment.
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+        <section className="rounded-2xl border border-line bg-paper p-6">
+          <h2 className="font-display text-xl font-semibold">Quick actions</h2>
+          <div className="mt-5 grid gap-2">
+            <Button asChild variant="outline" className="justify-start">
+              <Link to="/admin/books">
+                <Plus /> Add a new book <ArrowRight className="ml-auto" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-start">
+              <Link to="/admin/users">
+                <Users /> Manage users <ArrowRight className="ml-auto" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="justify-start">
+              <Link to="/admin/reviews">
+                <Star /> Review comments <ArrowRight className="ml-auto" />
+              </Link>
+            </Button>
+          </div>
+          <div className="mt-6 rounded-xl bg-clay/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-clay">
+              Recommendation health
+            </p>
+            <p className="mt-1 font-display text-3xl font-semibold">
+              {overview?.recommendationHealth ?? 0}%
+            </p>
+            <p className="mt-1 text-xs text-ink/55">
+              Based on reader ratings and saved recommendations.
+            </p>
+          </div>
+        </section>
+      </div>
+      <section className="mt-4 rounded-2xl border border-line bg-paper p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-xl font-semibold">Top genres</h2>
+            <p className="text-xs text-ink/45">Reader interest across the platform</p>
+          </div>
+          <BarChart3 className="size-5 text-clay" />
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
+          {topGenres.length ? (
+            topGenres.map((item, i) => (
+              <div key={item.genre} className="border-l-2 border-clay/40 pl-3">
+                <p className="font-display text-xl font-semibold">{item.percent}%</p>
+                <p className="text-xs text-ink/50">{item.genre}</p>
+                <div className="mt-3 h-1 rounded-full bg-line">
+                  <div
+                    className={cx(
+                      "h-full rounded-full",
+                      ["bg-clay", "bg-gold", "bg-sage", "bg-ink/40", "bg-ink/20"][i % 5],
+                    )}
+                    style={{ width: `${item.percent}%` }}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="col-span-full text-sm text-ink/50">
+              Genre stats will appear after readers save and rate books.
+            </p>
+          )}
+        </div>
+      </section>
+    </AppShell>
+  );
+}
 
-function AdminTable({ type }: { type: "books" | "users" | "reviews" }) { const [search, setSearch] = useState(""); const [engagement, setEngagement] = useState<AdminEngagementResponse | null>(null); const [adminBooks, setAdminBooks] = useState<AdminBookRow[]>([]); const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]); const [loading, setLoading] = useState(false); const [adminError, setAdminError] = useState(""); async function refreshBooks() { setLoading(true); try { const data = await getAdminBooks(); setAdminBooks(data.books); setAdminError(""); } catch (err) { setAdminError(err instanceof Error ? err.message : "Could not load books"); } finally { setLoading(false); } } async function refreshUsers() { setLoading(true); try { const data = await getAdminUsers(); setAdminUsers(data.users); setAdminError(""); } catch (err) { setAdminError(err instanceof Error ? err.message : "Could not load users"); } finally { setLoading(false); } } useEffect(() => { if (type === "books") { refreshBooks(); const listener = () => refreshBooks(); window.addEventListener("athenaeum-books-changed", listener); return () => window.removeEventListener("athenaeum-books-changed", listener); } if (type === "users") { refreshUsers(); } if (type === "reviews") { setLoading(true); getAdminEngagement().then(data => { setEngagement(data); setAdminError(""); }).catch(err => setAdminError(err instanceof Error ? err.message : "Could not load engagement")).finally(() => setLoading(false)); } }, [type]); async function refreshEngagement() { const data = await getAdminEngagement(); setEngagement(data); } async function moderateComment(id: string, action: "approve" | "hide" | "delete") { if (action === "approve") await approveAdminComment(id); if (action === "hide") await hideAdminComment(id); if (action === "delete") await deleteAdminComment(id); await refreshEngagement(); } async function removeBook(id: string, title: string) { if (!window.confirm(`Delete ${title} permanently from the catalogue?`)) return; await deleteAdminBook(id); setAdminBooks(current => current.filter(book => book.id !== id)); } async function deactivateUser(id: string) { await deactivateAdminUser(id); await refreshUsers(); } async function removeUser(id: string, name: string) { if (!window.confirm(`Delete ${name} permanently from the database?`)) return; await deleteAdminUser(id); setAdminUsers(current => current.filter(user => user.id !== id)); } if (type === "books") { const filteredBooks = adminBooks.filter(book => `${book.title} ${book.author} ${book.genre}`.toLowerCase().includes(search.toLowerCase())); return <div>{adminError && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{adminError}</div>}<label className="relative mb-4 block max-w-sm"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search books" className="w-full rounded-lg border border-input bg-paper py-2.5 pl-10 pr-3 text-sm" /></label><div className="overflow-x-auto rounded-2xl border border-line bg-paper"><table className="w-full min-w-[860px] text-sm"><thead><tr className="border-b border-line text-left text-[11px] uppercase tracking-wide text-ink/40"><th className="px-5 py-3 font-medium">Book</th><th className="px-3 py-3 font-medium">Genre</th><th className="px-3 py-3 font-medium">Rating</th><th className="px-3 py-3 font-medium">Likes</th><th className="px-3 py-3 font-medium">Comments</th><th className="px-3 py-3 font-medium">Published</th><th className="px-5 py-3 text-right font-medium">Actions</th></tr></thead><tbody className="divide-y divide-line">{loading ? <tr><td colSpan={7} className="px-5 py-8 text-center text-ink/50">Loading books...</td></tr> : filteredBooks.length ? filteredBooks.map(book => <tr key={book.id} className="hover:bg-cream"><td className="px-5 py-3"><div className="flex items-center gap-3"><div className="h-12 w-9 overflow-hidden rounded"><Cover book={book} /></div><div><p className="font-medium">{book.title}</p><p className="text-xs text-ink/45">{book.author}</p></div></div></td><td className="px-3 py-3"><span className="rounded-full bg-clay/10 px-2.5 py-1 text-xs text-clay">{book.genre}</span></td><td className="px-3 py-3"><StarRating value={book.rating} /></td><td className="px-3 py-3 text-ink/60">{book.likes}</td><td className="px-3 py-3 text-ink/60">{book.comments}</td><td className="px-3 py-3 text-ink/55">{book.year}</td><td className="px-5 py-3"><div className="flex justify-end gap-1"><Button size="icon" variant="ghost" aria-label={`Edit ${book.title}`} onClick={async () => { const data = await getBook(book.id); window.dispatchEvent(new CustomEvent("athenaeum-edit-book", { detail: data.book })); }}><Edit3 /></Button><Button size="icon" variant="ghost" aria-label={`Delete ${book.title}`} onClick={() => removeBook(book.id, book.title)}><Trash2 /></Button></div></td></tr>) : <tr><td colSpan={7} className="px-5 py-8 text-center text-ink/50">No books found.</td></tr>}</tbody></table></div></div>; } const filteredUsers = adminUsers.filter(user => `${user.name} ${user.email}`.toLowerCase().includes(search.toLowerCase())); if (type === "users") return <div>{adminError && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{adminError}</div>}<label className="relative mb-4 block max-w-sm"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users" className="w-full rounded-lg border border-input bg-paper py-2.5 pl-10 pr-3 text-sm" /></label><div className="overflow-x-auto rounded-2xl border border-line bg-paper"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b border-line text-left text-[11px] uppercase tracking-wide text-ink/40"><th className="px-5 py-3 font-medium">User</th><th className="px-3 py-3 font-medium">Role</th><th className="px-3 py-3 font-medium">Saved</th><th className="px-3 py-3 font-medium">Comments</th><th className="px-3 py-3 font-medium">Ratings</th><th className="px-3 py-3 font-medium">Likes</th><th className="px-3 py-3 font-medium">Status</th><th className="px-5 py-3 text-right font-medium">Actions</th></tr></thead><tbody className="divide-y divide-line">{loading ? <tr><td colSpan={8} className="px-5 py-8 text-center text-ink/50">Loading readers...</td></tr> : filteredUsers.length ? filteredUsers.map(user => <tr key={user.id}><td className="px-5 py-4"><p className="font-medium">{user.name}</p><p className="text-xs text-ink/45">{user.email}</p></td><td className="px-3 py-4"><span className={cx("rounded-full px-2.5 py-1 text-xs font-medium", user.role === "Admin" ? "bg-clay/10 text-clay" : "bg-ink/5 text-ink/60")}>{user.role}</span></td><td className="px-3 py-4 text-ink/60">{user.books}</td><td className="px-3 py-4 text-ink/60">{user.comments}</td><td className="px-3 py-4 text-ink/60">{user.ratings}</td><td className="px-3 py-4 text-ink/60">{user.likes}</td><td className="px-3 py-4"><span className={cx("rounded-full px-2.5 py-1 text-xs font-medium", user.status === "Active" ? "bg-sage/15 text-sage" : "bg-gold/15 text-gold")}>{user.status}</span></td><td className="px-5 py-4"><div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => deactivateUser(user.id)}>Deactivate</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => removeUser(user.id, user.name)}><Trash2 /> Delete</Button></div></td></tr>) : <tr><td colSpan={8} className="px-5 py-8 text-center text-ink/50">No readers found.</td></tr>}</tbody></table></div></div>; const comments = engagement?.comments ?? []; const ratings = engagement?.ratings ?? []; const likes = engagement?.likes ?? []; return <div className="space-y-5">{adminError && <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{adminError}</div>}<section><h2 className="mb-3 font-display text-xl font-semibold">Comments</h2><div className="space-y-3">{comments.length ? comments.map(comment => <article key={comment.id} className="rounded-2xl border border-line bg-paper p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-display text-lg font-semibold">{comment.book}</p><p className="text-xs text-ink/45">Comment by {comment.user}</p></div><span className={cx("rounded-full px-2.5 py-1 text-xs font-medium", comment.status === "Approved" ? "bg-sage/15 text-sage" : comment.status === "Pending" ? "bg-gold/15 text-gold" : "bg-ink/5 text-ink/60")}>{comment.status}</span></div><p className="mt-3 text-sm text-ink/60">{comment.text}</p><div className="mt-4 flex gap-2"><Button size="sm" variant="outline" onClick={() => moderateComment(comment.id, "approve")}><Check /> Approve</Button><Button size="sm" variant="ghost" onClick={() => moderateComment(comment.id, "hide")}><Eye /> Hide</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => moderateComment(comment.id, "delete")}><Trash2 /> Delete</Button></div></article>) : <EmptyState title="No comments yet" copy="Reader comments will appear here for moderation." />}</div></section><section><h2 className="mb-3 font-display text-xl font-semibold">Ratings</h2><div className="grid gap-3 sm:grid-cols-2">{ratings.map(rating => <article key={rating.id} className="rounded-2xl border border-line bg-paper p-5"><div className="flex items-center justify-between gap-3"><div><p className="font-display text-lg font-semibold">{rating.book}</p><p className="text-xs text-ink/45">Rated by {rating.user}</p></div><StarRating value={rating.rating} /></div></article>)}</div></section><section><h2 className="mb-3 font-display text-xl font-semibold">Likes</h2><div className="grid gap-3 sm:grid-cols-2">{likes.map(like => <article key={like.id} className="flex items-center justify-between rounded-2xl border border-line bg-paper p-5"><div><p className="font-display text-lg font-semibold">{like.book}</p><p className="text-xs text-ink/45">Liked by {like.user}</p></div><Heart className="size-5 fill-clay text-clay" /></article>)}</div></section></div>; }
+function AdminTable({ type }: { type: "books" | "users" | "reviews" }) {
+  const [search, setSearch] = useState("");
+  const [engagement, setEngagement] = useState<AdminEngagementResponse | null>(null);
+  const [adminBooks, setAdminBooks] = useState<AdminBookRow[]>([]);
+  const [adminUsers, setAdminUsers] = useState<AdminUserRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [adminError, setAdminError] = useState("");
+  async function refreshBooks() {
+    setLoading(true);
+    try {
+      const data = await getAdminBooks();
+      setAdminBooks(data.books);
+      setAdminError("");
+    } catch (err) {
+      setAdminError(err instanceof Error ? err.message : "Could not load books");
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function refreshUsers() {
+    setLoading(true);
+    try {
+      const data = await getAdminUsers();
+      setAdminUsers(data.users);
+      setAdminError("");
+    } catch (err) {
+      setAdminError(err instanceof Error ? err.message : "Could not load users");
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => {
+    if (type === "books") {
+      refreshBooks();
+      const listener = () => refreshBooks();
+      window.addEventListener("athenaeum-books-changed", listener);
+      return () => window.removeEventListener("athenaeum-books-changed", listener);
+    }
+    if (type === "users") {
+      refreshUsers();
+    }
+    if (type === "reviews") {
+      setLoading(true);
+      getAdminEngagement()
+        .then((data) => {
+          setEngagement(data);
+          setAdminError("");
+        })
+        .catch((err) =>
+          setAdminError(err instanceof Error ? err.message : "Could not load engagement"),
+        )
+        .finally(() => setLoading(false));
+    }
+  }, [type]);
+  async function refreshEngagement() {
+    const data = await getAdminEngagement();
+    setEngagement(data);
+  }
+  async function moderateComment(id: string, action: "approve" | "hide" | "delete") {
+    if (action === "approve") await approveAdminComment(id);
+    if (action === "hide") await hideAdminComment(id);
+    if (action === "delete") await deleteAdminComment(id);
+    await refreshEngagement();
+  }
+  async function removeBook(id: string, title: string) {
+    if (!window.confirm(`Delete ${title} permanently from the catalogue?`)) return;
+    await deleteAdminBook(id);
+    setAdminBooks((current) => current.filter((book) => book.id !== id));
+  }
+  async function deactivateUser(id: string) {
+    await deactivateAdminUser(id);
+    await refreshUsers();
+  }
+  async function removeUser(id: string, name: string) {
+    if (!window.confirm(`Delete ${name} permanently from the database?`)) return;
+    await deleteAdminUser(id);
+    setAdminUsers((current) => current.filter((user) => user.id !== id));
+  }
+  if (type === "books") {
+    const filteredBooks = adminBooks.filter((book) =>
+      `${book.title} ${book.author} ${book.genre}`.toLowerCase().includes(search.toLowerCase()),
+    );
+    return (
+      <div>
+        {adminError && (
+          <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+            {adminError}
+          </div>
+        )}
+        <label className="relative mb-4 block max-w-sm">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search books"
+            className="w-full rounded-lg border border-input bg-paper py-2.5 pl-10 pr-3 text-sm"
+          />
+        </label>
+        <div className="overflow-x-auto rounded-2xl border border-line bg-paper">
+          <table className="w-full min-w-[860px] text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-[11px] uppercase tracking-wide text-ink/40">
+                <th className="px-5 py-3 font-medium">Book</th>
+                <th className="px-3 py-3 font-medium">Genre</th>
+                <th className="px-3 py-3 font-medium">Rating</th>
+                <th className="px-3 py-3 font-medium">Likes</th>
+                <th className="px-3 py-3 font-medium">Comments</th>
+                <th className="px-3 py-3 font-medium">Published</th>
+                <th className="px-5 py-3 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-8 text-center text-ink/50">
+                    Loading books...
+                  </td>
+                </tr>
+              ) : filteredBooks.length ? (
+                filteredBooks.map((book) => (
+                  <tr key={book.id} className="hover:bg-cream">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-9 overflow-hidden rounded">
+                          <Cover book={book} />
+                        </div>
+                        <div>
+                          <p className="font-medium">{book.title}</p>
+                          <p className="text-xs text-ink/45">{book.author}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="rounded-full bg-clay/10 px-2.5 py-1 text-xs text-clay">
+                        {book.genre}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <StarRating value={book.rating} />
+                    </td>
+                    <td className="px-3 py-3 text-ink/60">{book.likes}</td>
+                    <td className="px-3 py-3 text-ink/60">{book.comments}</td>
+                    <td className="px-3 py-3 text-ink/55">{book.year}</td>
+                    <td className="px-5 py-3">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Edit ${book.title}`}
+                          onClick={async () => {
+                            const data = await getBook(book.id);
+                            window.dispatchEvent(
+                              new CustomEvent("athenaeum-edit-book", { detail: data.book }),
+                            );
+                          }}
+                        >
+                          <Edit3 />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          aria-label={`Delete ${book.title}`}
+                          onClick={() => removeBook(book.id, book.title)}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="px-5 py-8 text-center text-ink/50">
+                    No books found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+  const filteredUsers = adminUsers.filter((user) =>
+    `${user.name} ${user.email}`.toLowerCase().includes(search.toLowerCase()),
+  );
+  if (type === "users")
+    return (
+      <div>
+        {adminError && (
+          <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+            {adminError}
+          </div>
+        )}
+        <label className="relative mb-4 block max-w-sm">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search users"
+            className="w-full rounded-lg border border-input bg-paper py-2.5 pl-10 pr-3 text-sm"
+          />
+        </label>
+        <div className="overflow-x-auto rounded-2xl border border-line bg-paper">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-[11px] uppercase tracking-wide text-ink/40">
+                <th className="px-5 py-3 font-medium">User</th>
+                <th className="px-3 py-3 font-medium">Role</th>
+                <th className="px-3 py-3 font-medium">Saved</th>
+                <th className="px-3 py-3 font-medium">Comments</th>
+                <th className="px-3 py-3 font-medium">Ratings</th>
+                <th className="px-3 py-3 font-medium">Likes</th>
+                <th className="px-3 py-3 font-medium">Status</th>
+                <th className="px-5 py-3 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-5 py-8 text-center text-ink/50">
+                    Loading readers...
+                  </td>
+                </tr>
+              ) : filteredUsers.length ? (
+                filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-5 py-4">
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-xs text-ink/45">{user.email}</p>
+                    </td>
+                    <td className="px-3 py-4">
+                      <span
+                        className={cx(
+                          "rounded-full px-2.5 py-1 text-xs font-medium",
+                          user.role === "Admin" ? "bg-clay/10 text-clay" : "bg-ink/5 text-ink/60",
+                        )}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-3 py-4 text-ink/60">{user.books}</td>
+                    <td className="px-3 py-4 text-ink/60">{user.comments}</td>
+                    <td className="px-3 py-4 text-ink/60">{user.ratings}</td>
+                    <td className="px-3 py-4 text-ink/60">{user.likes}</td>
+                    <td className="px-3 py-4">
+                      <span
+                        className={cx(
+                          "rounded-full px-2.5 py-1 text-xs font-medium",
+                          user.status === "Active"
+                            ? "bg-sage/15 text-sage"
+                            : "bg-gold/15 text-gold",
+                        )}
+                      >
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => deactivateUser(user.id)}>
+                          Deactivate
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => removeUser(user.id, user.name)}
+                        >
+                          <Trash2 /> Delete
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-5 py-8 text-center text-ink/50">
+                    No readers found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  const comments = engagement?.comments ?? [];
+  const ratings = engagement?.ratings ?? [];
+  const likes = engagement?.likes ?? [];
+  return (
+    <div className="space-y-5">
+      {adminError && (
+        <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+          {adminError}
+        </div>
+      )}
+      <section>
+        <h2 className="mb-3 font-display text-xl font-semibold">Comments</h2>
+        <div className="space-y-3">
+          {comments.length ? (
+            comments.map((comment) => (
+              <article key={comment.id} className="rounded-2xl border border-line bg-paper p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-display text-lg font-semibold">{comment.book}</p>
+                    <p className="text-xs text-ink/45">Comment by {comment.user}</p>
+                  </div>
+                  <span
+                    className={cx(
+                      "rounded-full px-2.5 py-1 text-xs font-medium",
+                      comment.status === "Approved"
+                        ? "bg-sage/15 text-sage"
+                        : comment.status === "Pending"
+                          ? "bg-gold/15 text-gold"
+                          : "bg-ink/5 text-ink/60",
+                    )}
+                  >
+                    {comment.status}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm text-ink/60">{comment.text}</p>
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => moderateComment(comment.id, "approve")}
+                  >
+                    <Check /> Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => moderateComment(comment.id, "hide")}
+                  >
+                    <Eye /> Hide
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    onClick={() => moderateComment(comment.id, "delete")}
+                  >
+                    <Trash2 /> Delete
+                  </Button>
+                </div>
+              </article>
+            ))
+          ) : (
+            <EmptyState
+              title="No comments yet"
+              copy="Reader comments will appear here for moderation."
+            />
+          )}
+        </div>
+      </section>
+      <section>
+        <h2 className="mb-3 font-display text-xl font-semibold">Ratings</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {ratings.map((rating) => (
+            <article key={rating.id} className="rounded-2xl border border-line bg-paper p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-display text-lg font-semibold">{rating.book}</p>
+                  <p className="text-xs text-ink/45">Rated by {rating.user}</p>
+                </div>
+                <StarRating value={rating.rating} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section>
+        <h2 className="mb-3 font-display text-xl font-semibold">Likes</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {likes.map((like) => (
+            <article
+              key={like.id}
+              className="flex items-center justify-between rounded-2xl border border-line bg-paper p-5"
+            >
+              <div>
+                <p className="font-display text-lg font-semibold">{like.book}</p>
+                <p className="text-xs text-ink/45">Liked by {like.user}</p>
+              </div>
+              <Heart className="size-5 fill-clay text-clay" />
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
 
 function readImageFileAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -334,46 +2845,577 @@ function readImageFileAsDataUrl(file: File) {
   });
 }
 
-function AdminForm() { const [added, setAdded] = useState(false); const [saving, setSaving] = useState(false); const [error, setError] = useState(""); const [coverPreview, setCoverPreview] = useState(coverPlaceholder); const [editingBook, setEditingBook] = useState<ApiBook | null>(null); useEffect(() => { const listener = (event: Event) => { const book = (event as CustomEvent<ApiBook>).detail; setEditingBook(book); setAdded(false); setError(""); setCoverPreview(book.cover || coverPlaceholder); window.setTimeout(() => document.getElementById("add-book")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }; window.addEventListener("athenaeum-edit-book", listener); return () => window.removeEventListener("athenaeum-edit-book", listener); }, []); function clearForm(form?: HTMLFormElement | null) { setEditingBook(null); setAdded(false); setCoverPreview(coverPlaceholder); form?.reset(); } async function handleCoverChange(event: ChangeEvent<HTMLInputElement>) { const file = event.currentTarget.files?.[0]; if (!file) return; if (!file.type.startsWith("image/")) { setError("Please choose an image file for the cover."); return; } if (file.size > 4 * 1024 * 1024) { setError("Cover image should be smaller than 4MB."); return; } try { setCoverPreview(await readImageFileAsDataUrl(file)); setError(""); } catch (err) { setError(err instanceof Error ? err.message : "Could not read cover image"); } } async function handleSubmit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const formElement = event.currentTarget; const form = new FormData(formElement); const coverFile = form.get("coverFile"); const coverUrl = String(form.get("coverUrl") || "").trim(); setSaving(true); setError(""); try { let cover = coverUrl || editingBook?.cover || ""; if (coverFile instanceof File && coverFile.size > 0) { if (!coverFile.type.startsWith("image/")) throw new Error("Please choose an image file for the cover."); if (coverFile.size > 4 * 1024 * 1024) throw new Error("Cover image should be smaller than 4MB."); cover = await readImageFileAsDataUrl(coverFile); } const input = { title: String(form.get("title") || "").trim(), author: String(form.get("author") || "").trim(), genre: String(form.get("genre") || "Literary").trim(), cover, year: Number(form.get("year") || new Date().getFullYear()), pages: Number(form.get("pages") || 0), description: String(form.get("description") || "").trim(), tags: String(form.get("tags") || "").split(",").map(tag => tag.trim()).filter(Boolean), reason: String(form.get("reason") || "Recommended for readers who enjoy thoughtful books.").trim() }; if (editingBook) await updateBook(editingBook.id, input); else await createBook(input); setAdded(true); window.dispatchEvent(new Event("athenaeum-books-changed")); if (!editingBook) { setCoverPreview(coverPlaceholder); formElement.reset(); } } catch (err) { setError(err instanceof Error ? err.message : "Could not save book"); } finally { setSaving(false); } } return <form key={editingBook?.id ?? "new-book"} onSubmit={handleSubmit} className="rounded-2xl border border-line bg-paper p-6">{error && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{error}</div>}{editingBook && <div className="mb-4 rounded-xl border border-clay/20 bg-clay/5 p-3 text-sm text-clay">Editing <strong>{editingBook.title}</strong>. Save changes to update this book.</div>}<div className="grid gap-6 lg:grid-cols-[180px_1fr]"><div><div className="aspect-[2/3] overflow-hidden rounded-xl border border-line bg-cream"><img src={coverPreview} alt="Book cover preview" className="h-full w-full object-cover" /></div><p className="mt-2 text-xs text-ink/45">Use a cover image from your computer or paste an image URL.</p></div><div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium">Book title<input name="title" defaultValue={editingBook?.title ?? ""} required placeholder="Enter book title" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">Author name<input name="author" defaultValue={editingBook?.author ?? ""} required placeholder="Enter author name" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">Genre<input name="genre" defaultValue={editingBook?.genre ?? ""} required placeholder="Mystery, Romance, History..." className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">Cover image file<input name="coverFile" type="file" accept="image/*" onChange={handleCoverChange} className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium sm:col-span-2">Cover image URL<input name="coverUrl" defaultValue={editingBook?.cover?.startsWith("data:") ? "" : editingBook?.cover ?? ""} placeholder="https://example.com/book-cover.jpg" onChange={event => { if (event.currentTarget.value.trim()) setCoverPreview(event.currentTarget.value.trim()); }} className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">Publication year<input name="year" defaultValue={editingBook?.year ?? ""} type="number" min="1000" max="2100" placeholder="2026" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium">Page count<input name="pages" defaultValue={editingBook?.pages ?? ""} type="number" min="1" placeholder="320" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium sm:col-span-2">Description<textarea name="description" defaultValue={editingBook?.description ?? ""} required placeholder="Write what the book is about" className="mt-1.5 min-h-28 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium sm:col-span-2">Recommendation note<textarea name="reason" defaultValue={editingBook?.reason ?? ""} required placeholder="Why should this book be recommended to readers?" className="mt-1.5 min-h-24 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label><label className="text-sm font-medium sm:col-span-2">Tags<input name="tags" defaultValue={editingBook?.tags?.join(", ") ?? ""} placeholder="Atmospheric, Mystery, Nigerian literature" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm" /></label></div></div><div className="mt-5 flex justify-end gap-2"><Button type="button" variant="outline" onClick={event => clearForm(event.currentTarget.form)}>{editingBook ? "Cancel edit" : "Clear"}</Button><Button type="submit" disabled={saving}>{added ? <Check /> : <Plus />}{saving ? "Saving" : added ? editingBook ? "Book updated" : "Book added" : editingBook ? "Update book" : "Add book"}</Button></div></form>; }
+function AdminForm() {
+  const [added, setAdded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [coverPreview, setCoverPreview] = useState(coverPlaceholder);
+  const [editingBook, setEditingBook] = useState<ApiBook | null>(null);
+  useEffect(() => {
+    const listener = (event: Event) => {
+      const book = (event as CustomEvent<ApiBook>).detail;
+      setEditingBook(book);
+      setAdded(false);
+      setError("");
+      setCoverPreview(book.cover || coverPlaceholder);
+      window.setTimeout(
+        () =>
+          document
+            .getElementById("add-book")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        50,
+      );
+    };
+    window.addEventListener("athenaeum-edit-book", listener);
+    return () => window.removeEventListener("athenaeum-edit-book", listener);
+  }, []);
+  function clearForm(form?: HTMLFormElement | null) {
+    setEditingBook(null);
+    setAdded(false);
+    setCoverPreview(coverPlaceholder);
+    form?.reset();
+  }
+  async function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file for the cover.");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setError("Cover image should be smaller than 4MB.");
+      return;
+    }
+    try {
+      setCoverPreview(await readImageFileAsDataUrl(file));
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not read cover image");
+    }
+  }
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const coverFile = form.get("coverFile");
+    const coverUrl = String(form.get("coverUrl") || "").trim();
+    setSaving(true);
+    setError("");
+    try {
+      let cover = coverUrl || editingBook?.cover || "";
+      if (coverFile instanceof File && coverFile.size > 0) {
+        if (!coverFile.type.startsWith("image/"))
+          throw new Error("Please choose an image file for the cover.");
+        if (coverFile.size > 4 * 1024 * 1024)
+          throw new Error("Cover image should be smaller than 4MB.");
+        cover = await readImageFileAsDataUrl(coverFile);
+      }
+      const input = {
+        title: String(form.get("title") || "").trim(),
+        author: String(form.get("author") || "").trim(),
+        genre: String(form.get("genre") || "Literary").trim(),
+        cover,
+        year: Number(form.get("year") || new Date().getFullYear()),
+        pages: Number(form.get("pages") || 0),
+        description: String(form.get("description") || "").trim(),
+        tags: String(form.get("tags") || "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        reason: String(
+          form.get("reason") || "Recommended for readers who enjoy thoughtful books.",
+        ).trim(),
+      };
+      if (editingBook) await updateBook(editingBook.id, input);
+      else await createBook(input);
+      setAdded(true);
+      window.dispatchEvent(new Event("athenaeum-books-changed"));
+      if (!editingBook) {
+        setCoverPreview(coverPlaceholder);
+        formElement.reset();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save book");
+    } finally {
+      setSaving(false);
+    }
+  }
+  return (
+    <form
+      key={editingBook?.id ?? "new-book"}
+      onSubmit={handleSubmit}
+      className="rounded-2xl border border-line bg-paper p-6"
+    >
+      {error && (
+        <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      {editingBook && (
+        <div className="mb-4 rounded-xl border border-clay/20 bg-clay/5 p-3 text-sm text-clay">
+          Editing <strong>{editingBook.title}</strong>. Save changes to update this book.
+        </div>
+      )}
+      <div className="grid gap-6 lg:grid-cols-[180px_1fr]">
+        <div>
+          <div className="aspect-[2/3] overflow-hidden rounded-xl border border-line bg-cream">
+            <img
+              src={coverPreview}
+              alt="Book cover preview"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <p className="mt-2 text-xs text-ink/45">
+            Use a cover image from your computer or paste an image URL.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="text-sm font-medium">
+            Book title
+            <input
+              name="title"
+              defaultValue={editingBook?.title ?? ""}
+              required
+              placeholder="Enter book title"
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Author name
+            <input
+              name="author"
+              defaultValue={editingBook?.author ?? ""}
+              required
+              placeholder="Enter author name"
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Genre
+            <input
+              name="genre"
+              defaultValue={editingBook?.genre ?? ""}
+              required
+              placeholder="Mystery, Romance, History..."
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Cover image file
+            <input
+              name="coverFile"
+              type="file"
+              accept="image/*"
+              onChange={handleCoverChange}
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium sm:col-span-2">
+            Cover image URL
+            <input
+              name="coverUrl"
+              defaultValue={
+                editingBook?.cover?.startsWith("data:") ? "" : (editingBook?.cover ?? "")
+              }
+              placeholder="https://example.com/book-cover.jpg"
+              onChange={(event) => {
+                if (event.currentTarget.value.trim())
+                  setCoverPreview(event.currentTarget.value.trim());
+              }}
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Publication year
+            <input
+              name="year"
+              defaultValue={editingBook?.year ?? ""}
+              type="number"
+              min="1000"
+              max="2100"
+              placeholder="2026"
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Page count
+            <input
+              name="pages"
+              defaultValue={editingBook?.pages ?? ""}
+              type="number"
+              min="1"
+              placeholder="320"
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium sm:col-span-2">
+            Description
+            <textarea
+              name="description"
+              defaultValue={editingBook?.description ?? ""}
+              required
+              placeholder="Write what the book is about"
+              className="mt-1.5 min-h-28 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium sm:col-span-2">
+            Recommendation note
+            <textarea
+              name="reason"
+              defaultValue={editingBook?.reason ?? ""}
+              required
+              placeholder="Why should this book be recommended to readers?"
+              className="mt-1.5 min-h-24 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium sm:col-span-2">
+            Tags
+            <input
+              name="tags"
+              defaultValue={editingBook?.tags?.join(", ") ?? ""}
+              placeholder="Atmospheric, Mystery, Nigerian literature"
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+        </div>
+      </div>
+      <div className="mt-5 flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(event) => clearForm(event.currentTarget.form)}
+        >
+          {editingBook ? "Cancel edit" : "Clear"}
+        </Button>
+        <Button type="submit" disabled={saving}>
+          {added ? <Check /> : <Plus />}
+          {saving
+            ? "Saving"
+            : added
+              ? editingBook
+                ? "Book updated"
+                : "Book added"
+              : editingBook
+                ? "Update book"
+                : "Add book"}
+        </Button>
+      </div>
+    </form>
+  );
+}
 
-export function AdminBookDetailsPage({ bookId }: { bookId: string }) { const [book, setBook] = useState<ApiBook | null>(null); const [comments, setComments] = useState<BookComment[]>([]); const [error, setError] = useState(""); useEffect(() => { getBook(bookId).then(data => { setBook(data.book); setError(""); }).catch(err => setError(err instanceof Error ? err.message : "Could not load book")); getBookComments(bookId).then(data => setComments(data.comments)).catch(() => setComments([])); }, [bookId]); if (error) return <AppShell admin><EmptyState title="Book not found" copy={error} action={<Button asChild><Link to="/admin/saved-books">Back to saved books</Link></Button>} /></AppShell>; if (!book) return <AppShell admin><EmptyState title="Loading book" copy="Getting this book for admin review." /></AppShell>; return <AppShell admin><Link to="/admin/saved-books" className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-ink/55 hover:text-clay">Back to saved books</Link><div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]"><div className="mx-auto w-60 overflow-hidden rounded-2xl bg-paper shadow-xl ring-1 ring-ink/10 lg:mx-0 lg:w-full"><Cover book={book} /></div><section className="rounded-2xl border border-line bg-paper p-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">Admin book view</p><h1 className="mt-2 font-display text-5xl font-semibold leading-none">{book.title}</h1><p className="mt-3 text-lg text-ink/55">by {book.author}</p><div className="mt-5 flex flex-wrap items-center gap-3"><span className="rounded-full bg-clay/10 px-3 py-1.5 text-xs font-medium text-clay">{book.genre}</span><span className="text-sm text-ink/45">{book.year}</span><span className="text-sm text-ink/45">{book.pages} pages</span><StarRating value={book.rating} /></div><p className="mt-7 max-w-3xl text-base leading-relaxed text-ink/70">{book.description}</p><div className="mt-6 flex flex-wrap gap-2">{book.tags.map(tag => <span key={tag} className="rounded-full border border-line bg-cream px-3 py-1.5 text-xs text-ink/60">{tag}</span>)}</div><div className="mt-8 grid gap-3 sm:grid-cols-3"><div className="rounded-xl bg-cream p-4"><p className="text-xs text-ink/45">Likes</p><p className="mt-1 font-display text-3xl font-semibold">{book.likeCount ?? 0}</p></div><div className="rounded-xl bg-cream p-4"><p className="text-xs text-ink/45">Comments</p><p className="mt-1 font-display text-3xl font-semibold">{book.commentCount ?? comments.length}</p></div><div className="rounded-xl bg-cream p-4"><p className="text-xs text-ink/45">Reader rating</p><p className="mt-1 font-display text-3xl font-semibold">{book.rating.toFixed(1)}</p></div></div></section></div><section className="mt-8 rounded-2xl border border-line bg-paper p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">Book activity</p><h2 className="mt-1 font-display text-3xl font-semibold">Reader comments</h2></div><Button asChild variant="outline"><Link to="/admin/reviews">Open reviews</Link></Button></div><div className="mt-5 space-y-3">{comments.length ? comments.map(comment => <article key={comment.id} className="rounded-xl border border-line bg-cream p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold">{comment.user}</p><span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-medium text-gold">{comment.status}</span></div><p className="mt-2 text-sm leading-relaxed text-ink/65">{comment.text}</p></article>) : <p className="text-sm text-ink/50">No comments yet for this book.</p>}</div></section></AppShell>; }
-export function AdminSavedBooksPage() { const [savedBooks, setSavedBooks] = useState<AdminSavedBookRow[]>([]); const [search, setSearch] = useState(""); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); useEffect(() => { setLoading(true); getAdminSavedBooks().then(data => { setSavedBooks(data.savedBooks); setError(""); }).catch(err => setError(err instanceof Error ? err.message : "Could not load saved books")).finally(() => setLoading(false)); }, []); const filtered = savedBooks.filter(item => `${item.reader?.name ?? ""} ${item.reader?.email ?? ""} ${item.book?.title ?? ""} ${item.book?.author ?? ""} ${item.status}`.toLowerCase().includes(search.toLowerCase())); return <AppShell admin><PageHeader eyebrow="Admin studio / saved books" title="Saved books" description="Books saved by readers from their dashboards and reading lists." action={<Button asChild variant="outline"><Link to="/admin/users"><Users /> View readers</Link></Button>} />{error && <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">{error}</div>}<label className="relative mb-4 block max-w-sm"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search saved books or readers" className="w-full rounded-lg border border-input bg-paper py-2.5 pl-10 pr-3 text-sm" /></label><div className="overflow-x-auto rounded-2xl border border-line bg-paper"><table className="w-full min-w-[900px] text-sm"><thead><tr className="border-b border-line text-left text-[11px] uppercase tracking-wide text-ink/40"><th className="px-5 py-3 font-medium">Book</th><th className="px-3 py-3 font-medium">Reader</th><th className="px-3 py-3 font-medium">Status</th><th className="px-3 py-3 font-medium">Progress</th><th className="px-3 py-3 font-medium">Saved date</th><th className="px-5 py-3 text-right font-medium">Open</th></tr></thead><tbody className="divide-y divide-line">{loading ? <tr><td colSpan={6} className="px-5 py-8 text-center text-ink/50">Loading saved books...</td></tr> : filtered.length ? filtered.map(item => <tr key={item.id} className="hover:bg-cream"><td className="px-5 py-3"><div className="flex items-center gap-3">{item.book ? <div className="h-14 w-10 overflow-hidden rounded"><Cover book={item.book as ApiBook} /></div> : <div className="h-14 w-10 rounded bg-cream" />}<div><p className="font-medium">{item.book?.title ?? "Deleted book"}</p><p className="text-xs text-ink/45">{item.book?.author ?? "Unknown author"}{item.book?.genre ? ` · ${item.book.genre}` : ""}</p></div></div></td><td className="px-3 py-3"><p className="font-medium">{item.reader?.name ?? "Deleted reader"}</p><p className="text-xs text-ink/45">{item.reader?.email ?? "No email"}</p></td><td className="px-3 py-3"><span className="rounded-full bg-sage/15 px-2.5 py-1 text-xs font-medium text-sage">{item.status}</span></td><td className="px-3 py-3"><div className="w-24"><div className="h-1.5 rounded-full bg-line"><div className="h-full rounded-full bg-clay" style={{ width: `${item.progress ?? 0}%` }} /></div><span className="mt-1 block text-[10px] text-ink/40">{item.progress ?? 0}%</span></div></td><td className="px-3 py-3 text-ink/55">{item.savedAt ? new Date(item.savedAt).toLocaleDateString() : "-"}</td><td className="px-5 py-3 text-right">{item.book ? <Button asChild size="sm" variant="outline"><Link to="/admin/book-details/$bookId" params={{ bookId: item.book.id }}>View book</Link></Button> : <span className="text-xs text-ink/35">Unavailable</span>}</td></tr>) : <tr><td colSpan={6} className="px-5 py-8 text-center text-ink/50">No saved books yet. When readers save books, they will appear here.</td></tr>}</tbody></table></div></AppShell>; }
-export function AdminBooksPage() { return <AppShell admin><PageHeader eyebrow="Admin studio / books" title="Book management" description="Keep titles, covers, and metadata tidy for every reader." action={<Button asChild><a href="#add-book"><Plus /> Add book</a></Button>} /><div className="mb-5 flex items-center justify-between"><p className="text-sm text-ink/50">Live catalogue from MongoDB</p><Button variant="outline" size="sm"><SlidersHorizontal /> Filter</Button></div><AdminTable type="books" /><section id="add-book" className="mt-8"><h2 className="mb-4 font-display text-2xl font-semibold">Add a new book</h2><AdminForm /></section></AppShell>; }
-export function AdminUsersPage() { return <AppShell admin><PageHeader eyebrow="Admin studio / readers" title="Readers" description="See the people using the app and their saved books, comments, ratings, and likes." /><AdminTable type="users" /></AppShell>; }
-export function AdminReviewsPage() { return <AppShell admin><PageHeader eyebrow="Admin studio / reviews" title="Reviews, ratings & likes" description="See reader comments, ratings, and likes connected to each book." /><AdminTable type="reviews" /></AppShell>; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export function AdminBookDetailsPage({ bookId }: { bookId: string }) {
+  const [book, setBook] = useState<ApiBook | null>(null);
+  const [comments, setComments] = useState<BookComment[]>([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    getBook(bookId)
+      .then((data) => {
+        setBook(data.book);
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load book"));
+    getBookComments(bookId)
+      .then((data) => setComments(data.comments))
+      .catch(() => setComments([]));
+  }, [bookId]);
+  if (error)
+    return (
+      <AppShell admin>
+        <EmptyState
+          title="Book not found"
+          copy={error}
+          action={
+            <Button asChild>
+              <Link to="/admin/saved-books">Back to saved books</Link>
+            </Button>
+          }
+        />
+      </AppShell>
+    );
+  if (!book)
+    return (
+      <AppShell admin>
+        <EmptyState title="Loading book" copy="Getting this book for admin review." />
+      </AppShell>
+    );
+  return (
+    <AppShell admin>
+      <Link
+        to="/admin/saved-books"
+        className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-ink/55 hover:text-clay"
+      >
+        Back to saved books
+      </Link>
+      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <div className="mx-auto w-60 overflow-hidden rounded-2xl bg-paper shadow-xl ring-1 ring-ink/10 lg:mx-0 lg:w-full">
+          <Cover book={book} />
+        </div>
+        <section className="rounded-2xl border border-line bg-paper p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+            Admin book view
+          </p>
+          <h1 className="mt-2 font-display text-5xl font-semibold leading-none">{book.title}</h1>
+          <p className="mt-3 text-lg text-ink/55">by {book.author}</p>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-clay/10 px-3 py-1.5 text-xs font-medium text-clay">
+              {book.genre}
+            </span>
+            <span className="text-sm text-ink/45">{book.year}</span>
+            <span className="text-sm text-ink/45">{book.pages} pages</span>
+            <StarRating value={book.rating} />
+          </div>
+          <p className="mt-7 max-w-3xl text-base leading-relaxed text-ink/70">{book.description}</p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {book.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-line bg-cream px-3 py-1.5 text-xs text-ink/60"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl bg-cream p-4">
+              <p className="text-xs text-ink/45">Likes</p>
+              <p className="mt-1 font-display text-3xl font-semibold">{book.likeCount ?? 0}</p>
+            </div>
+            <div className="rounded-xl bg-cream p-4">
+              <p className="text-xs text-ink/45">Comments</p>
+              <p className="mt-1 font-display text-3xl font-semibold">
+                {book.commentCount ?? comments.length}
+              </p>
+            </div>
+            <div className="rounded-xl bg-cream p-4">
+              <p className="text-xs text-ink/45">Reader rating</p>
+              <p className="mt-1 font-display text-3xl font-semibold">{book.rating.toFixed(1)}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+      <section className="mt-8 rounded-2xl border border-line bg-paper p-6">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+              Book activity
+            </p>
+            <h2 className="mt-1 font-display text-3xl font-semibold">Reader comments</h2>
+          </div>
+          <Button asChild variant="outline">
+            <Link to="/admin/reviews">Open reviews</Link>
+          </Button>
+        </div>
+        <div className="mt-5 space-y-3">
+          {comments.length ? (
+            comments.map((comment) => (
+              <article key={comment.id} className="rounded-xl border border-line bg-cream p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">{comment.user}</p>
+                  <span className="rounded-full bg-gold/15 px-2.5 py-1 text-[11px] font-medium text-gold">
+                    {comment.status}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-ink/65">{comment.text}</p>
+              </article>
+            ))
+          ) : (
+            <p className="text-sm text-ink/50">No comments yet for this book.</p>
+          )}
+        </div>
+      </section>
+    </AppShell>
+  );
+}
+export function AdminSavedBooksPage() {
+  const [savedBooks, setSavedBooks] = useState<AdminSavedBookRow[]>([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    setLoading(true);
+    getAdminSavedBooks()
+      .then((data) => {
+        setSavedBooks(data.savedBooks);
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load saved books"))
+      .finally(() => setLoading(false));
+  }, []);
+  const filtered = savedBooks.filter((item) =>
+    `${item.reader?.name ?? ""} ${item.reader?.email ?? ""} ${item.book?.title ?? ""} ${item.book?.author ?? ""} ${item.status}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
+  return (
+    <AppShell admin>
+      <PageHeader
+        eyebrow="Admin studio / saved books"
+        title="Saved books"
+        description="Books saved by readers from their dashboards and reading lists."
+        action={
+          <Button asChild variant="outline">
+            <Link to="/admin/users">
+              <Users /> View readers
+            </Link>
+          </Button>
+        }
+      />
+      {error && (
+        <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <label className="relative mb-4 block max-w-sm">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink/40" />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search saved books or readers"
+          className="w-full rounded-lg border border-input bg-paper py-2.5 pl-10 pr-3 text-sm"
+        />
+      </label>
+      <div className="overflow-x-auto rounded-2xl border border-line bg-paper">
+        <table className="w-full min-w-[900px] text-sm">
+          <thead>
+            <tr className="border-b border-line text-left text-[11px] uppercase tracking-wide text-ink/40">
+              <th className="px-5 py-3 font-medium">Book</th>
+              <th className="px-3 py-3 font-medium">Reader</th>
+              <th className="px-3 py-3 font-medium">Status</th>
+              <th className="px-3 py-3 font-medium">Progress</th>
+              <th className="px-3 py-3 font-medium">Saved date</th>
+              <th className="px-5 py-3 text-right font-medium">Open</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="px-5 py-8 text-center text-ink/50">
+                  Loading saved books...
+                </td>
+              </tr>
+            ) : filtered.length ? (
+              filtered.map((item) => (
+                <tr key={item.id} className="hover:bg-cream">
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      {item.book ? (
+                        <div className="h-14 w-10 overflow-hidden rounded">
+                          <Cover book={item.book as ApiBook} />
+                        </div>
+                      ) : (
+                        <div className="h-14 w-10 rounded bg-cream" />
+                      )}
+                      <div>
+                        <p className="font-medium">{item.book?.title ?? "Deleted book"}</p>
+                        <p className="text-xs text-ink/45">
+                          {item.book?.author ?? "Unknown author"}
+                          {item.book?.genre ? ` · ${item.book.genre}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <p className="font-medium">{item.reader?.name ?? "Deleted reader"}</p>
+                    <p className="text-xs text-ink/45">{item.reader?.email ?? "No email"}</p>
+                  </td>
+                  <td className="px-3 py-3">
+                    <span className="rounded-full bg-sage/15 px-2.5 py-1 text-xs font-medium text-sage">
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="w-24">
+                      <div className="h-1.5 rounded-full bg-line">
+                        <div
+                          className="h-full rounded-full bg-clay"
+                          style={{ width: `${item.progress ?? 0}%` }}
+                        />
+                      </div>
+                      <span className="mt-1 block text-[10px] text-ink/40">
+                        {item.progress ?? 0}%
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 text-ink/55">
+                    {item.savedAt ? new Date(item.savedAt).toLocaleDateString() : "-"}
+                  </td>
+                  <td className="px-5 py-3 text-right">
+                    {item.book ? (
+                      <Button asChild size="sm" variant="outline">
+                        <Link to="/admin/book-details/$bookId" params={{ bookId: item.book.id }}>
+                          View book
+                        </Link>
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-ink/35">Unavailable</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="px-5 py-8 text-center text-ink/50">
+                  No saved books yet. When readers save books, they will appear here.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </AppShell>
+  );
+}
+export function AdminBooksPage() {
+  return (
+    <AppShell admin>
+      <PageHeader
+        eyebrow="Admin studio / books"
+        title="Book management"
+        description="Keep titles, covers, and metadata tidy for every reader."
+        action={
+          <Button asChild>
+            <a href="#add-book">
+              <Plus /> Add book
+            </a>
+          </Button>
+        }
+      />
+      <div className="mb-5 flex items-center justify-between">
+        <p className="text-sm text-ink/50">Live catalogue from MongoDB</p>
+        <Button variant="outline" size="sm">
+          <SlidersHorizontal /> Filter
+        </Button>
+      </div>
+      <AdminTable type="books" />
+      <section id="add-book" className="mt-8">
+        <h2 className="mb-4 font-display text-2xl font-semibold">Add a new book</h2>
+        <AdminForm />
+      </section>
+    </AppShell>
+  );
+}
+export function AdminUsersPage() {
+  return (
+    <AppShell admin>
+      <PageHeader
+        eyebrow="Admin studio / readers"
+        title="Readers"
+        description="See the people using the app and their saved books, comments, ratings, and likes."
+      />
+      <AdminTable type="users" />
+    </AppShell>
+  );
+}
+export function AdminReviewsPage() {
+  return (
+    <AppShell admin>
+      <PageHeader
+        eyebrow="Admin studio / reviews"
+        title="Reviews, ratings & likes"
+        description="See reader comments, ratings, and likes connected to each book."
+      />
+      <AdminTable type="reviews" />
+    </AppShell>
+  );
+}

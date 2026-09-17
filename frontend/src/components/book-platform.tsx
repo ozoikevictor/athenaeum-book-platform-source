@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
-  ArrowLeft, ArrowRight, BarChart3, Bell, BookMarked, BookOpen, Check, ChevronDown, CircleUserRound,
+  ArrowRight, BarChart3, Bell, BookMarked, BookOpen, Check, ChevronDown, CircleUserRound,
   Compass, Edit3, Eye, Heart, LayoutDashboard, Library, LogIn, Menu, MoreHorizontal,
   Plus, Search, Settings, SlidersHorizontal, Star, Trash2, Users, X,
 } from "lucide-react";
@@ -127,7 +127,6 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-2 px-4 sm:h-18 sm:gap-4 sm:px-7 lg:px-10">
         <div className="flex items-center gap-3">
           <button className="grid size-10 place-items-center text-ink transition hover:text-clay lg:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-6" /></button>
-          {showBack && <button className="grid size-10 place-items-center text-ink transition hover:text-clay" aria-label={`Back to ${admin ? "admin overview" : "dashboard"}`} onClick={handleBack}><ArrowLeft className="size-5" /></button>}
           <Logo compact />
         </div>
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">{nav.map(([to, label, Icon]) => <Link key={to} to={to} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink/65 transition hover:bg-ink/5"><Icon className="size-4" />{label}</Link>)}</nav>
@@ -151,7 +150,10 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
         {admin && <div className="mt-8 rounded-xl border border-ink/10 bg-ink p-4 text-cream"><p className="text-[10px] uppercase tracking-[0.18em] text-cream/50">Staff mode</p><p className="mt-2 font-display text-lg">Keep the shelf thoughtful.</p><p className="mt-1 text-xs leading-relaxed text-cream/55">Review new books and keep recommendations human.</p><div className="mt-4 flex items-center justify-between gap-3"><Link to="/profile" onClick={() => setOpen(false)} className="text-xs font-medium text-gold hover:underline">View profile</Link><button className="text-xs font-medium text-cream/65 hover:text-cream" onClick={handleLogout}>Logout</button></div></div>}
     </aside>
     {open && <button className="fixed inset-0 z-40 bg-ink/25 backdrop-blur-[1px] lg:hidden" aria-label="Close navigation" onClick={() => setOpen(false)} />}
-    <main className="mx-auto min-w-0 max-w-[1440px] px-4 py-5 sm:px-7 sm:py-6 lg:px-10 lg:py-9">{children}</main>
+    <main className="mx-auto min-w-0 max-w-[1440px] px-4 py-5 sm:px-7 sm:py-6 lg:px-10 lg:py-9">
+      {showBack && <button type="button" className="mb-5 inline-flex min-h-10 items-center justify-center rounded-lg border border-line bg-paper px-5 text-sm font-semibold text-ink shadow-sm transition hover:border-ink/25 hover:bg-ink hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40" onClick={handleBack}>Back</button>}
+      {children}
+    </main>
   </div>;
 }
 

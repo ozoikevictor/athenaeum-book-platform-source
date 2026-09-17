@@ -74,7 +74,7 @@ import {
   type ReadingListItem,
 } from "@/lib/api";
 import { getCurrentUser, isSignedIn, signIn, signOut } from "@/lib/auth";
-import { books, genres, reviews, users, type Book, type BookStatus } from "@/lib/books";
+import { genres, reviews, users, type Book, type BookStatus } from "@/lib/books";
 import cartographersSilence from "@/assets/cartographers-silence.jpg";
 import orbitalGardens from "@/assets/orbital-gardens.jpg";
 import quietMeridian from "@/assets/quiet-meridian.jpg";
@@ -83,6 +83,18 @@ import understory from "@/assets/understory.jpg";
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
+
+function usePublicCatalog() {
+  const [catalog, setCatalog] = useState<ApiBook[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    getBooks({ sort: "Popular" })
+      .then((data) => setCatalog(data.books))
+      .catch(() => setCatalog([]))
+      .finally(() => setLoading(false));
+  }, []);
+  return { catalog, loading };
+}
 
 const localCovers: Record<string, string> = {
   "cartographers-silence": cartographersSilence,
@@ -738,6 +750,8 @@ function MarketingHeader() {
 }
 
 export function LandingPage() {
+  const { catalog: publicBooks, loading: loadingPublicBooks } = usePublicCatalog();
+  const landingBooks = publicBooks.slice(0, 5);
   return (
     <div className="min-h-screen bg-cream text-ink">
       <MarketingHeader />
@@ -770,7 +784,7 @@ export function LandingPage() {
                 <p className="text-xs text-ink/45">reader rating</p>
               </div>
               <div>
-                <p className="font-display text-2xl font-semibold">12k+</p>
+                <p className="font-display text-2xl font-semibold">{loadingPublicBooks ? "..." : publicBooks.length}</p>
                 <p className="text-xs text-ink/45">books indexed</p>
               </div>
               <div>
@@ -783,20 +797,20 @@ export function LandingPage() {
             <div className="absolute -inset-4 rounded-[2rem] bg-clay/10" />
             <div className="animate-book-float relative grid grid-cols-2 gap-3 rounded-2xl border border-line bg-paper p-4 shadow-2xl">
               <div className="col-span-2 overflow-hidden rounded-xl">
-                <img
-                  src={books[0].cover}
-                  alt="The Cartographer's Silence cover"
+                {publicBooks[0] ? <img
+                  src={coverSrc(publicBooks[0])}
+                  alt={`${publicBooks[0].title} cover`}
                   width={768}
                   height={1152}
                   className="h-72 w-full object-cover object-top transition duration-700 hover:scale-105 sm:h-96"
-                />
+                /> : <div className="h-72 animate-pulse bg-cream sm:h-96" />}
               </div>
               <div className="overflow-hidden rounded-xl">
-                <Cover book={books[1]} className="transition duration-700 hover:scale-105" />
+                {publicBooks[1] ? <Cover book={publicBooks[1]} className="transition duration-700 hover:scale-105" /> : <div className="aspect-[2/3] animate-pulse bg-cream" />}
               </div>
               <div className="flex flex-col justify-end rounded-xl bg-ink p-4 text-cream">
                 <p className="text-[10px] uppercase tracking-[0.2em] text-cream/55">This week</p>
-                <p className="mt-2 font-display text-xl">Five new picks for your shelf.</p>
+                <p className="mt-2 font-display text-xl">{publicBooks[0] ? `${publicBooks[0].title} and more real picks.` : "Fresh picks from the catalogue."}</p>
                 <Link to="/register" className="mt-5 text-xs font-semibold text-gold">
                   Start your profile →
                 </Link>
@@ -885,7 +899,7 @@ export function LandingPage() {
             </Link>
           </div>
           <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-9 sm:grid-cols-3 lg:grid-cols-5">
-            {books.map((book, i) => (
+            {loadingPublicBooks ? Array.from({ length: 5 }, (_, i) => <div key={i} className="space-y-3"><div className="aspect-[2/3] animate-pulse rounded-xl bg-paper" /><div className="h-4 animate-pulse rounded bg-paper" /></div>) : landingBooks.map((book, i) => (
               <div
                 key={book.id}
                 className="animate-card-in"
@@ -964,6 +978,7 @@ export function LandingPage() {
 }
 
 export function AuthPage({ register = false }: { register?: boolean }) {
+  const { catalog: publicBooks } = usePublicCatalog();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -1031,9 +1046,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
               : "Your recommendations, saved titles, and current reads are waiting."}
           </p>
           <div className="mt-8 flex gap-3">
-            <img src={books[0].cover} alt="" className="h-32 w-24 rounded-lg object-cover" />
-            <img src={books[2].cover} alt="" className="h-32 w-24 rounded-lg object-cover" />
-            <img src={books[1].cover} alt="" className="h-32 w-24 rounded-lg object-cover" />
+            {publicBooks.length ? publicBooks.slice(0, 3).map((book) => <img key={book.id} src={coverSrc(book)} alt={`${book.title} cover`} className="h-32 w-24 rounded-lg object-cover" />) : Array.from({ length: 3 }, (_, i) => <div key={i} className="h-32 w-24 animate-pulse rounded-lg bg-paper" />)}
           </div>
         </div>
         <div className="rounded-2xl border border-line bg-paper p-6 shadow-xl sm:p-9">

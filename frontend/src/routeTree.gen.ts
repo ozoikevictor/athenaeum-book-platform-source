@@ -13,10 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReadingListRouteImport } from './routes/reading-list'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminBooksRouteImport } from './routes/admin.books'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
@@ -45,6 +47,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -63,6 +70,11 @@ const ReadingListRoute = ReadingListRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -106,10 +118,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/reading-list': typeof ReadingListRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/books': typeof AdminBooksRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/saved-books': typeof AdminSavedBooksRoute
@@ -122,10 +136,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/reading-list': typeof ReadingListRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/books': typeof AdminBooksRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/saved-books': typeof AdminSavedBooksRoute
@@ -140,10 +156,12 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/browse': typeof BrowseRoute
   '/dashboard': typeof DashboardRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/reading-list': typeof ReadingListRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/books': typeof AdminBooksRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/saved-books': typeof AdminSavedBooksRoute
@@ -159,10 +177,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/browse'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
     | '/profile'
     | '/reading-list'
     | '/register'
+    | '/reset-password'
     | '/admin/books'
     | '/admin/reviews'
     | '/admin/saved-books'
@@ -175,10 +195,12 @@ export interface FileRouteTypes {
     | '/'
     | '/browse'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
     | '/profile'
     | '/reading-list'
     | '/register'
+    | '/reset-password'
     | '/admin/books'
     | '/admin/reviews'
     | '/admin/saved-books'
@@ -192,10 +214,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/browse'
     | '/dashboard'
+    | '/forgot-password'
     | '/login'
     | '/profile'
     | '/reading-list'
     | '/register'
+    | '/reset-password'
     | '/admin/books'
     | '/admin/reviews'
     | '/admin/saved-books'
@@ -210,10 +234,12 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   BrowseRoute: typeof BrowseRoute
   DashboardRoute: typeof DashboardRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   ReadingListRoute: typeof ReadingListRoute
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   BooksBookIdRoute: typeof BooksBookIdRoute
 }
 
@@ -247,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -273,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -352,10 +392,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   BrowseRoute: BrowseRoute,
   DashboardRoute: DashboardRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   ReadingListRoute: ReadingListRoute,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   BooksBookIdRoute: BooksBookIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -28,7 +28,13 @@ const localCovers: Record<string, string> = {
 const coverPlaceholder = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='768' height='1152' viewBox='0 0 768 1152'%3E%3Crect width='768' height='1152' fill='%23f6efe0'/%3E%3Crect x='96' y='128' width='576' height='896' rx='28' fill='%23ffffff' stroke='%23d9c9ae' stroke-width='8'/%3E%3Ctext x='384' y='530' text-anchor='middle' font-family='serif' font-size='64' fill='%2337241a'%3EAthenaeum%3C/text%3E%3Ctext x='384' y='610' text-anchor='middle' font-family='Arial' font-size='28' letter-spacing='6' fill='%23806f5f'%3EBOOK COVER%3C/text%3E%3C/svg%3E";
 
 function coverSrc(book: Pick<Book, "id" | "cover"> | Pick<ApiBook, "id" | "cover">) {
-  return localCovers[book.id] ?? (book.cover || coverPlaceholder);
+  const savedCover = book.cover?.trim();
+
+  if (savedCover && !savedCover.startsWith("/assets/")) {
+    return savedCover;
+  }
+
+  return localCovers[book.id] ?? savedCover ?? coverPlaceholder;
 }
 
 function Cover({ book, className = "" }: { book: Book | ApiBook; className?: string }) {

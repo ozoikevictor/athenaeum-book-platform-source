@@ -320,6 +320,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
   const location = useLocation();
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Reader";
+  const displayEmail = currentUser?.email ?? "";
   const displayBooks = currentUser?.books ?? 0;
   const nav: ReadonlyArray<readonly [string, string, typeof LayoutDashboard]> = admin
     ? [
@@ -397,7 +398,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
             >
               <Menu className="size-6" />
             </button>
-            <Logo compact />
+            <Logo />
           </div>
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">
             {nav.map(([to, label, Icon]) => (
@@ -416,13 +417,14 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
               </Link>
             ))}
           </nav>
-          <div className="flex min-w-0 items-center sm:gap-3 sm:rounded-xl sm:border sm:border-line/80 sm:bg-cream/70 sm:px-2 sm:py-1.5 sm:shadow-sm">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3 sm:rounded-xl sm:border sm:border-line/80 sm:bg-cream/70 sm:px-2 sm:py-1.5 sm:shadow-sm">
             <Link
               to="/profile"
-              className="hidden min-w-0 text-right transition hover:text-clay sm:block"
+              className="min-w-0 max-w-20 text-right leading-tight transition hover:text-clay min-[390px]:max-w-28 sm:max-w-40"
             >
-              <p className="truncate text-sm font-semibold">{displayName}</p>
-              <p className="text-xs text-ink/45">{admin ? "Admin profile" : "Reader account"}</p>
+              <p className="truncate text-[11px] font-semibold sm:text-sm">{displayName}</p>
+              <p className="truncate text-[9px] text-ink/45 sm:hidden">{displayEmail}</p>
+              <p className="hidden text-xs text-ink/45 sm:block">{admin ? "Admin profile" : "Reader account"}</p>
             </Link>
             <Link to="/profile" aria-label="Open profile">
               <AccountAvatar />

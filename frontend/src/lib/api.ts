@@ -1,3 +1,5 @@
+import { getAuthToken } from "@/lib/auth";
+
 const DEFAULT_API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:5000/api"
   : "https://athenaeum-book-platform-source.onrender.com/api";
@@ -10,7 +12,7 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 };
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
-  const token = typeof window !== "undefined" ? window.localStorage.getItem("athenaeum-token") : null;
+  const token = getAuthToken();
   const controller = new AbortController();
   const { timeoutMs = REQUEST_TIMEOUT_MS, ...requestOptions } = options;
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
@@ -53,7 +55,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
 }
 
 export async function downloadApiFile(path: string, filename: string) {
-  const token = typeof window !== "undefined" ? window.localStorage.getItem("athenaeum-token") : null;
+  const token = getAuthToken();
   const headers = new Headers();
 
   if (token) {
@@ -98,6 +100,22 @@ export function registerUser(input: { name: string; email: string; password: str
   return apiRequest<AuthResponse>("/auth/register", {
     method: "POST",
     body: input,
+    timeoutMs: 120000,
+  });
+}
+
+export function requestPasswordReset(email: string) {
+  return apiRequest<{ message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: { email },
+    timeoutMs: 120000,
+  });
+}
+
+export function resetPassword(token: string, password: string) {
+  return apiRequest<{ message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: { token, password },
     timeoutMs: 120000,
   });
 }

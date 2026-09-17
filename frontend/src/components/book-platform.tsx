@@ -15,6 +15,7 @@ import {
   Heart,
   LayoutDashboard,
   Library,
+  LoaderCircle,
   LogIn,
   Menu,
   MoreHorizontal,
@@ -56,6 +57,8 @@ import {
   rateBook,
   registerUser,
   removeReadingListItem,
+  requestPasswordReset,
+  resetPassword,
   saveBook,
   toggleBookLike,
   updateBook,
@@ -958,8 +961,13 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const completeSignIn = (to: "/dashboard" | "/admin", token?: string, user?: unknown) => {
-    signIn(token, user);
+  const completeSignIn = (
+    to: "/dashboard" | "/admin",
+    token?: string,
+    user?: unknown,
+    remember = true,
+  ) => {
+    signIn(token, user, remember);
     navigate({ to });
   };
   const handleAuthSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -971,6 +979,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
     const email = String(form.get("email") ?? "");
     const password = String(form.get("password") ?? "");
     const confirmPassword = String(form.get("confirmPassword") ?? "");
+    const remember = register || form.get("rememberMe") === "on";
 
     try {
       if (register && password !== confirmPassword) {
@@ -990,6 +999,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         response.user?.role?.toLowerCase() === "admin" ? "/admin" : "/dashboard",
         response.token,
         response.user,
+        remember,
       );
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Something went wrong");
@@ -1107,10 +1117,10 @@ export function AuthPage({ register = false }: { register?: boolean }) {
             {!register && (
               <div className="flex items-center justify-between text-xs">
                 <label className="flex items-center gap-2">
-                  <input type="checkbox" className="accent-clay" />
+                  <input name="rememberMe" type="checkbox" className="accent-clay" />
                   Remember me
                 </label>
-                <Link to="/login" className="font-medium text-clay">
+                <Link to="/forgot-password" className="font-medium text-clay">
                   Forgot password?
                 </Link>
               </div>
@@ -1121,7 +1131,16 @@ export function AuthPage({ register = false }: { register?: boolean }) {
               </p>
             )}
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? "Please wait" : register ? "Create my shelf" : "Sign in"} <ArrowRight />
+              {submitting ? (
+                <>
+                  <LoaderCircle className="animate-spin" />
+                  {register ? "Creating account..." : "Signing in..."}
+                </>
+              ) : (
+                <>
+                  {register ? "Create my shelf" : "Sign in"} <ArrowRight />
+                </>
+              )}
             </Button>
           </form>
           <p className="mt-6 text-center text-sm text-ink/55">
@@ -1131,6 +1150,89 @@ export function AuthPage({ register = false }: { register?: boolean }) {
             </Link>
           </p>
         </div>
+      </main>
+    </div>
+  );
+}
+
+export function ForgotPasswordPage() {
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      const form = new FormData(event.currentTarget);
+      const response = await requestPasswordReset(String(form.get("email") || ""));
+      setMessage(response.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not request a password reset");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+  return (
+    <div className="min-h-screen bg-cream">
+      <MarketingHeader />
+      <main className="mx-auto max-w-lg px-5 py-14">
+        <section className="rounded-2xl border border-line bg-paper p-6 shadow-xl sm:p-9">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">Account recovery</p>
+          <h1 className="mt-2 font-display text-4xl font-semibold">Forgot your password?</h1>
+          <p className="mt-3 text-sm leading-relaxed text-ink/55">Enter the email used for your Athenaeum account. We will send a secure link that expires in 30 minutes.</p>
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            <label className="block text-sm font-medium">Email address<input name="email" type="email" required autoComplete="email" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2" /></label>
+            {message && <p className="rounded-lg border border-sage/25 bg-sage/10 p-3 text-sm text-sage">{message}</p>}
+            {error && <p className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={submitting}>{submitting ? <><LoaderCircle className="animate-spin" />Sending reset link...</> : "Send reset link"}</Button>
+          </form>
+          <Button asChild variant="ghost" className="mt-4 w-full"><Link to="/login">Back to sign in</Link></Button>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export function ResetPasswordPage() {
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get("password") || "");
+    const confirmPassword = String(form.get("confirmPassword") || "");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    const token = new URLSearchParams(window.location.search).get("token") || "";
+    setSubmitting(true);
+    setError("");
+    try {
+      await resetPassword(token, password);
+      navigate({ to: "/login" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not reset the password");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+  return (
+    <div className="min-h-screen bg-cream">
+      <MarketingHeader />
+      <main className="mx-auto max-w-lg px-5 py-14">
+        <section className="rounded-2xl border border-line bg-paper p-6 shadow-xl sm:p-9">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-clay">Account recovery</p>
+          <h1 className="mt-2 font-display text-4xl font-semibold">Choose a new password</h1>
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            <label className="block text-sm font-medium">New password<input name="password" type="password" minLength={6} required autoComplete="new-password" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2" /></label>
+            <label className="block text-sm font-medium">Confirm new password<input name="confirmPassword" type="password" minLength={6} required autoComplete="new-password" className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 outline-none ring-clay/30 focus:ring-2" /></label>
+            {error && <p className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
+            <Button type="submit" className="w-full" disabled={submitting}>{submitting ? <><LoaderCircle className="animate-spin" />Changing password...</> : "Change password"}</Button>
+          </form>
+        </section>
       </main>
     </div>
   );

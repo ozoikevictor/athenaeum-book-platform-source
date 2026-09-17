@@ -15,7 +15,9 @@ export type StoredUser = {
 };
 
 export function isSignedIn() {
-  if (typeof window === "undefined") return false;
+  // The saved browser session is unavailable during server rendering. Allow the
+  // route to hydrate, then enforce the token, user, and role checks in-browser.
+  if (typeof window === "undefined") return true;
   return window.localStorage.getItem(AUTH_KEY) === "true"
     && Boolean(window.localStorage.getItem(TOKEN_KEY))
     && Boolean(getCurrentUser());

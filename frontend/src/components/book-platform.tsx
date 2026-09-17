@@ -70,7 +70,7 @@ import {
   type DashboardResponse,
   type ReadingListItem,
 } from "@/lib/api";
-import { getCurrentUser, signIn, signOut } from "@/lib/auth";
+import { getCurrentUser, isSignedIn, signIn, signOut } from "@/lib/auth";
 import { books, genres, reviews, users, type Book, type BookStatus } from "@/lib/books";
 import cartographersSilence from "@/assets/cartographers-silence.jpg";
 import orbitalGardens from "@/assets/orbital-gardens.jpg";
@@ -336,6 +336,14 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
     window.addEventListener("scroll", updateHeader, { passive: true });
     return () => window.removeEventListener("scroll", updateHeader);
   }, []);
+  useEffect(() => {
+    const user = getCurrentUser();
+    const hasCorrectRole = admin ? user?.role === "Admin" : user?.role === "User";
+    if (!isSignedIn() || !hasCorrectRole) {
+      signOut();
+      navigate({ to: "/login", replace: true });
+    }
+  }, [admin, navigate]);
   return (
     <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
       <header
@@ -1326,7 +1334,7 @@ export function DashboardPage() {
             </Link>
           </div>
           {recent.length ? (
-            <div className="max-h-96 overflow-auto overscroll-contain [scrollbar-gutter:stable]">
+            <div className="h-72 touch-pan-y overflow-x-auto overflow-y-scroll overscroll-contain [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch]">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
                   <tr className="border-y border-line text-left text-[11px] uppercase tracking-wide text-ink/40">
@@ -1401,7 +1409,7 @@ export function DashboardPage() {
         </section>
         <section className="rounded-2xl border border-line bg-paper p-6">
           <h2 className="mb-4 font-display text-xl font-semibold">For you</h2>
-          <div className="max-h-96 space-y-4 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable]">
+          <div className="h-72 touch-pan-y space-y-4 overflow-y-scroll overscroll-contain pr-2 [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch]">
             {recommendations.map((book) => (
               <div key={book.id} className="flex gap-3">
                 <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md">

@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema(
       newReleaseAlerts: { type: Boolean, default: true },
       communityActivity: { type: Boolean, default: false }
     },
+    following: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }],
     passwordResetToken: {
       type: String,
       default: null

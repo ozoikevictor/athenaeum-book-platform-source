@@ -7,13 +7,16 @@ const {
   exportAccount,
   exportReportPdf,
   getActivity,
+  getCommunityFeed,
   getDashboard,
   getGenreMix,
   getProfile,
+  getReaders,
   getReadingList,
   updatePreferences,
   updateProfile,
-  updateReadingListItem
+  updateReadingListItem,
+  toggleFollow
 } = require("../controllers/userController");
 const { protect } = require("../middleware/authMiddleware");
 const asyncHandler = require("../utils/asyncHandler");
@@ -31,6 +34,9 @@ router.get("/me/report.pdf", asyncHandler(exportReportPdf));
 router.delete("/me", asyncHandler(deleteAccount));
 router.get("/me/dashboard", asyncHandler(getDashboard));
 router.get("/me/activity", asyncHandler(getActivity));
+router.get("/me/community-feed", asyncHandler(getCommunityFeed));
+router.get("/readers", asyncHandler(getReaders));
+router.post("/readers/:id/follow", asyncHandler(toggleFollow));
 router.get("/me/genre-mix", asyncHandler(getGenreMix));
 router.get("/me/reading-list", asyncHandler(getReadingList));
 router.post("/me/reading-list", asyncHandler(addReadingListItem));

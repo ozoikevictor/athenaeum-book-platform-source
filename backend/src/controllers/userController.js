@@ -5,6 +5,7 @@ const Like = require("../models/Like");
 const PDFDocument = require("pdfkit");
 const Rating = require("../models/Rating");
 const ReadingListItem = require("../models/ReadingListItem");
+const User = require("../models/User");
 
 function formatBook(book, item) {
   return {
@@ -223,10 +224,84 @@ async function deleteAccount(req, res) {
     ReadingListItem.deleteMany({ user: req.user._id }),
     Rating.deleteMany({ user: req.user._id }),
     Like.deleteMany({ user: req.user._id }),
-    Comment.deleteMany({ user: req.user._id })
+    Comment.deleteMany({ user: req.user._id }),
+    User.updateMany({ following: req.user._id }, { $pull: { following: req.user._id } })
   ]);
   await req.user.deleteOne();
   res.json({ message: "Account deleted" });
+}
+
+async function getReaders(req, res) {
+  const followingIds = new Set((req.user.following ?? []).map(String));
+  const readers = await User.find({
+    _id: { $ne: req.user._id },
+    role: "User",
+    status: { $ne: "Inactive" }
+  })
+    .select("name profileImage favoriteGenres books createdAt")
+    .sort({ createdAt: -1 })
+    .limit(12);
+
+  const readerRows = await Promise.all(readers.map(async (reader) => ({
+    id: reader._id.toString(),
+    name: reader.name,
+    profileImage: reader.profileImage ?? "",
+    favoriteGenres: reader.favoriteGenres ?? [],
+    books: reader.books ?? 0,
+    followers: await User.countDocuments({ following: reader._id }),
+    isFollowing: followingIds.has(reader._id.toString())
+  })));
+
+  res.json({ readers: readerRows });
+}
+
+async function toggleFollow(req, res) {
+  const target = await User.findOne({ _id: req.params.id, role: "User", status: { $ne: "Inactive" } });
+  if (!target) return res.status(404).json({ message: "Reader not found" });
+  if (target._id.equals(req.user._id)) {
+    return res.status(400).json({ message: "You cannot follow yourself" });
+  }
+
+  const isFollowing = (req.user.following ?? []).some((id) => id.equals(target._id));
+  if (isFollowing) {
+    req.user.following.pull(target._id);
+  } else {
+    req.user.following.push(target._id);
+  }
+  await req.user.save();
+
+  res.json({
+    message: isFollowing ? `You unfollowed ${target.name}` : `You are now following ${target.name}`,
+    isFollowing: !isFollowing,
+    followers: await User.countDocuments({ following: target._id })
+  });
+}
+
+async function getCommunityFeed(req, res) {
+  const following = req.user.following ?? [];
+  if (!following.length) return res.json({ activity: [] });
+
+  const [ratings, comments, shelfUpdates] = await Promise.all([
+    Rating.find({ user: { $in: following } }).populate("user", "name profileImage").populate("book", "title slug").sort({ updatedAt: -1 }).limit(12),
+    Comment.find({ user: { $in: following }, status: "Approved" }).populate("user", "name profileImage").populate("book", "title slug").sort({ createdAt: -1 }).limit(12),
+    ReadingListItem.find({ user: { $in: following } }).populate("user", "name profileImage").populate("book", "title slug").sort({ updatedAt: -1 }).limit(12)
+  ]);
+
+  const activity = [
+    ...ratings.map((item) => ({ id: `rating-${item._id}`, type: "rating", reader: item.user, book: item.book, detail: `rated this ${item.value} stars`, createdAt: item.updatedAt })),
+    ...comments.map((item) => ({ id: `comment-${item._id}`, type: "review", reader: item.user, book: item.book, detail: "shared a review", createdAt: item.createdAt })),
+    ...shelfUpdates.map((item) => ({ id: `shelf-${item._id}`, type: "shelf", reader: item.user, book: item.book, detail: item.status === "Finished" ? "finished this book" : `marked this as ${item.status.toLowerCase()}`, createdAt: item.updatedAt }))
+  ]
+    .filter((item) => item.reader && item.book)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 12)
+    .map((item) => ({
+      ...item,
+      reader: { id: item.reader._id.toString(), name: item.reader.name, profileImage: item.reader.profileImage ?? "" },
+      book: { id: item.book.slug, title: item.book.title }
+    }));
+
+  res.json({ activity });
 }
 
 async function getDashboard(req, res) {
@@ -368,11 +443,14 @@ module.exports = {
   exportAccount,
   exportReportPdf,
   getActivity,
+  getCommunityFeed,
   getDashboard,
   getGenreMix,
   getProfile,
+  getReaders,
   getReadingList,
   updatePreferences,
+  toggleFollow,
   updateProfile,
   updateReadingListItem
 };

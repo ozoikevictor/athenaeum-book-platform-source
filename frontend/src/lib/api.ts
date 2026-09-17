@@ -175,6 +175,25 @@ export type DashboardResponse = {
   recommendations: ApiBook[];
 };
 
+export type ReaderSummary = {
+  id: string;
+  name: string;
+  profileImage: string;
+  favoriteGenres: string[];
+  books: number;
+  followers: number;
+  isFollowing: boolean;
+};
+
+export type CommunityActivity = {
+  id: string;
+  type: "rating" | "review" | "shelf";
+  reader: { id: string; name: string; profileImage: string };
+  book: { id: string; title: string };
+  detail: string;
+  createdAt: string;
+};
+
 export type BookComment = {
   id: string;
   text: string;
@@ -232,6 +251,21 @@ export type AdminSavedBookRow = {
 
 export function getDashboard() {
   return apiRequest<DashboardResponse>("/users/me/dashboard");
+}
+
+export function getReaders() {
+  return apiRequest<{ readers: ReaderSummary[] }>("/users/readers");
+}
+
+export function getCommunityFeed() {
+  return apiRequest<{ activity: CommunityActivity[] }>("/users/me/community-feed");
+}
+
+export function toggleReaderFollow(readerId: string) {
+  return apiRequest<{ message: string; isFollowing: boolean; followers: number }>(
+    `/users/readers/${readerId}/follow`,
+    { method: "POST" },
+  );
 }
 
 export function downloadReportPdf() {

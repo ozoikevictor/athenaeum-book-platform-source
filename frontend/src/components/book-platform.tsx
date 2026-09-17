@@ -26,6 +26,8 @@ import {
   Star,
   Trash2,
   Upload,
+  UserCheck,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -51,7 +53,9 @@ import {
   getBooks,
   getDashboard,
   getGenres,
+  getCommunityFeed,
   getMyProfile,
+  getReaders,
   getReadingList,
   hideAdminComment,
   loginUser,
@@ -62,6 +66,7 @@ import {
   resetPassword,
   saveBook,
   toggleBookLike,
+  toggleReaderFollow,
   updateBook,
   updateMyPreferences,
   updateMyProfile,
@@ -73,7 +78,9 @@ import {
   type AdminUserRow,
   type ApiBook,
   type BookComment,
+  type CommunityActivity,
   type DashboardResponse,
+  type ReaderSummary,
   type ReadingListItem,
   type ReadingPreferences,
 } from "@/lib/api";
@@ -1332,6 +1339,9 @@ export function DashboardPage() {
   const currentUser = getCurrentUser();
   const firstName = currentUser?.name?.split(" ")[0] ?? "Reader";
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
+  const [readers, setReaders] = useState<ReaderSummary[]>([]);
+  const [communityActivity, setCommunityActivity] = useState<CommunityActivity[]>([]);
+  const [followLoading, setFollowLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loadingDashboard, setLoadingDashboard] = useState(true);
   useEffect(() => {
@@ -1340,6 +1350,14 @@ export function DashboardPage() {
       .then(setDashboard)
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load dashboard"))
       .finally(() => setLoadingDashboard(false));
+  }, []);
+  useEffect(() => {
+    Promise.all([getReaders(), getCommunityFeed()])
+      .then(([readerData, feedData]) => {
+        setReaders(readerData.readers);
+        setCommunityActivity(feedData.activity);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load the reading community"));
   }, []);
   const activity = dashboard?.activity ?? [];
   const maxPages = Math.max(...activity.map((item) => item.pages), 1);
@@ -1366,6 +1384,25 @@ export function DashboardPage() {
     downloadReportPdf().catch((err) =>
       setError(err instanceof Error ? err.message : "Could not export report"),
     );
+  }
+  async function handleFollow(readerId: string) {
+    setFollowLoading(readerId);
+    try {
+      const result = await toggleReaderFollow(readerId);
+      setReaders((current) =>
+        current.map((reader) =>
+          reader.id === readerId
+            ? { ...reader, isFollowing: result.isFollowing, followers: result.followers }
+            : reader,
+        ),
+      );
+      const feed = await getCommunityFeed();
+      setCommunityActivity(feed.activity);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update this follow");
+    } finally {
+      setFollowLoading(null);
+    }
   }
   return (
     <AppShell>
@@ -1595,6 +1632,94 @@ export function DashboardPage() {
           </Button>
         </section>
       </div>
+      <section className="mt-4 rounded-2xl border border-line bg-paper p-5 sm:p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-display text-xl font-semibold">Reading community</h2>
+            <p className="text-xs text-ink/45">Follow readers to see their public book activity.</p>
+          </div>
+          <Users className="size-5 shrink-0 text-clay" />
+        </div>
+        <div className="mt-5 grid gap-5 lg:grid-cols-[1.05fr_1fr]">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/45">
+              Readers to follow
+            </h3>
+            {readers.length ? (
+              <div className="mt-3 grid max-h-80 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {readers.map((reader) => (
+                  <article key={reader.id} className="flex items-center gap-3 rounded-xl border border-line bg-cream p-3">
+                    <AccountAvatar src={reader.profileImage} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{reader.name}</p>
+                      <p className="truncate text-[11px] text-ink/45">
+                        {reader.favoriteGenres.slice(0, 2).join(" · ") || "Discovering new books"}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-ink/40">
+                        {reader.followers} {reader.followers === 1 ? "follower" : "followers"}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={reader.isFollowing ? "outline" : "default"}
+                      className="shrink-0 px-2.5"
+                      disabled={followLoading === reader.id}
+                      onClick={() => handleFollow(reader.id)}
+                    >
+                      {followLoading === reader.id ? (
+                        <LoaderCircle className="animate-spin" />
+                      ) : reader.isFollowing ? (
+                        <UserCheck />
+                      ) : (
+                        <UserPlus />
+                      )}
+                      <span className="hidden xl:inline">{reader.isFollowing ? "Following" : "Follow"}</span>
+                    </Button>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-dashed border-line p-5 text-sm text-ink/50">
+                New readers will appear here as the community grows.
+              </p>
+            )}
+          </div>
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/45">
+              Following activity
+            </h3>
+            {communityActivity.length ? (
+              <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
+                {communityActivity.map((item) => (
+                  <article key={item.id} className="flex gap-3 rounded-xl border border-line p-3">
+                    <AccountAvatar src={item.reader.profileImage} />
+                    <div className="min-w-0 text-sm">
+                      <p>
+                        <span className="font-semibold">{item.reader.name}</span>{" "}
+                        <span className="text-ink/55">{item.detail}</span>
+                      </p>
+                      <Link
+                        to="/books/$bookId"
+                        params={{ bookId: item.book.id }}
+                        className="mt-0.5 block truncate font-medium text-clay hover:underline"
+                      >
+                        {item.book.title}
+                      </Link>
+                      <p className="mt-1 text-[10px] text-ink/35">
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-3 rounded-xl border border-dashed border-line p-5 text-sm text-ink/50">
+                Follow a reader to see their ratings, reviews, and shelf updates here.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </AppShell>
   );
 }

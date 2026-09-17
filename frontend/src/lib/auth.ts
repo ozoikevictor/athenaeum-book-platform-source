@@ -15,7 +15,10 @@ export type StoredUser = {
 };
 
 export function isSignedIn() {
-  return typeof window === "undefined" || window.localStorage.getItem(AUTH_KEY) === "true";
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(AUTH_KEY) === "true"
+    && Boolean(window.localStorage.getItem(TOKEN_KEY))
+    && Boolean(getCurrentUser());
 }
 
 export function signIn(token?: string, user?: unknown) {
@@ -58,6 +61,23 @@ export function signOut() {
 
 export function requireSignIn() {
   if (!isSignedIn()) {
+    signOut();
+    throw redirect({ to: "/login" });
+  }
+}
+
+export function requireReader() {
+  requireSignIn();
+  if (getCurrentUser()?.role !== "User") {
+    signOut();
+    throw redirect({ to: "/login" });
+  }
+}
+
+export function requireAdmin() {
+  requireSignIn();
+  if (getCurrentUser()?.role !== "Admin") {
+    signOut();
     throw redirect({ to: "/login" });
   }
 }

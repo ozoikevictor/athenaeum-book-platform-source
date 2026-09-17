@@ -41,7 +41,6 @@ import {
   deleteAdminUser,
   deleteMyAccount,
   downloadReportPdf,
-  exportAccountData,
   getAdminBooks,
   getAdminEngagement,
   getAdminOverview,
@@ -2186,6 +2185,7 @@ export function ProfilePage() {
   const [accountMessage, setAccountMessage] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [downloadingData, setDownloadingData] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -2263,18 +2263,14 @@ export function ProfilePage() {
     }
   }
   async function handleDownloadData() {
+    setDownloadingData(true);
     try {
-      const data = await exportAccountData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "athenaeum-account-data.json";
-      link.click();
-      URL.revokeObjectURL(url);
-      setAccountMessage("Your account data was downloaded.");
+      await downloadReportPdf();
+      setAccountMessage("Your account report was downloaded as a PDF.");
     } catch (err) {
-      setAccountMessage(err instanceof Error ? err.message : "Could not download data");
+      setAccountMessage(err instanceof Error ? err.message : "Could not download the PDF");
+    } finally {
+      setDownloadingData(false);
     }
   }
   async function handleDeleteAccount() {
@@ -2512,8 +2508,9 @@ export function ProfilePage() {
           <Button variant="outline" onClick={() => setShowPasswordForm(!showPasswordForm)}>
             Change password
           </Button>
-          <Button variant="outline" onClick={handleDownloadData}>
-            Download my data
+          <Button variant="outline" onClick={handleDownloadData} disabled={downloadingData}>
+            {downloadingData && <LoaderCircle className="animate-spin" />}
+            {downloadingData ? "Preparing PDF..." : "Download my data (PDF)"}
           </Button>
           <Button variant="outline" className="text-destructive" onClick={handleDeleteAccount}>
             Delete account

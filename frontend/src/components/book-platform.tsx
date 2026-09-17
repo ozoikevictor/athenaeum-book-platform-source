@@ -372,6 +372,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
               <Link
                 key={to}
                 to={to}
+                activeOptions={{ exact: true }}
                 className="flex items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm font-medium text-ink/60 transition hover:bg-cream hover:text-ink"
                 activeProps={{
                   className: "border border-clay/25 bg-clay/10 shadow-sm hover:bg-clay/15",
@@ -427,6 +428,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
             <Link
               key={to}
               to={to}
+              activeOptions={{ exact: true }}
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm font-medium text-ink/65 transition hover:bg-ink/5"
               activeProps={{

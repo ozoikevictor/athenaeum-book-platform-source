@@ -70,6 +70,7 @@ export function requireSignIn() {
 
 export function requireReader() {
   requireSignIn();
+  if (typeof window === "undefined") return;
   if (getCurrentUser()?.role?.toLowerCase() !== "user") {
     signOut();
     throw redirect({ to: "/login" });
@@ -78,6 +79,7 @@ export function requireReader() {
 
 export function requireAdmin() {
   requireSignIn();
+  if (typeof window === "undefined") return;
   if (getCurrentUser()?.role?.toLowerCase() !== "admin") {
     signOut();
     throw redirect({ to: "/login" });

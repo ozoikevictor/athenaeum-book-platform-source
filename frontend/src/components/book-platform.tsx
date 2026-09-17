@@ -7,6 +7,8 @@ import {
   BookMarked,
   BookOpen,
   Check,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   CircleUserRound,
   Compass,
@@ -19,6 +21,8 @@ import {
   LoaderCircle,
   LogIn,
   Menu,
+  Maximize2,
+  Minimize2,
   MoreHorizontal,
   Plus,
   Search,
@@ -2111,9 +2115,35 @@ export function ReadingPage({ bookId }: { bookId: string }) {
   const [book, setBook] = useState<ApiBook | null>(null);
   const [readingText, setReadingText] = useState("");
   const [progress, setProgress] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [error, setError] = useState("");
   const readerRef = useRef<HTMLDivElement>(null);
-  const saveTimerRef = useRef<number | null>(null);
+  const restoredPageRef = useRef(false);
+  const readingPages = useMemo(() => {
+    if (!readingText) return [];
+    const maxLength = 1800;
+    const pages: string[] = [];
+    let page = "";
+    for (const paragraph of readingText.split(/\n\s*\n/)) {
+      const cleanParagraph = paragraph.trim();
+      if (!cleanParagraph) continue;
+      if (cleanParagraph.length > maxLength) {
+        if (page) pages.push(page.trim());
+        page = "";
+        for (let start = 0; start < cleanParagraph.length; start += maxLength) {
+          pages.push(cleanParagraph.slice(start, start + maxLength).trim());
+        }
+      } else if (`${page}\n\n${cleanParagraph}`.length > maxLength) {
+        pages.push(page.trim());
+        page = cleanParagraph;
+      } else {
+        page = page ? `${page}\n\n${cleanParagraph}` : cleanParagraph;
+      }
+    }
+    if (page) pages.push(page.trim());
+    return pages;
+  }, [readingText]);
   useEffect(() => {
     getBook(bookId)
       .then(async ({ book: loadedBook }) => {
@@ -2127,29 +2157,42 @@ export function ReadingPage({ bookId }: { bookId: string }) {
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load this book"));
   }, [bookId]);
   useEffect(() => {
-    if (!readingText || !readerRef.current || !book?.progress) return;
-    const reader = readerRef.current;
-    const timer = window.setTimeout(() => {
-      reader.scrollTop = ((reader.scrollHeight - reader.clientHeight) * (book.progress ?? 0)) / 100;
-    }, 100);
-    return () => window.clearTimeout(timer);
-  }, [book?.progress, readingText]);
-  useEffect(() => () => {
-    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    if (!readingPages.length || restoredPageRef.current) return;
+    const savedPage = Math.max(0, Math.ceil(((book?.progress ?? 0) / 100) * readingPages.length) - 1);
+    setPageIndex(Math.min(savedPage, readingPages.length - 1));
+    restoredPageRef.current = true;
+  }, [book?.progress, readingPages.length]);
+  useEffect(() => {
+    const updateFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", updateFullscreen);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreen);
   }, []);
-  function handleReadingScroll() {
-    if (!book || !readerRef.current) return;
-    const reader = readerRef.current;
-    const scrollable = reader.scrollHeight - reader.clientHeight;
-    const nextProgress = scrollable > 0 ? Math.min(100, Math.round((reader.scrollTop / scrollable) * 100)) : 100;
+  useEffect(() => {
+    const handleKeys = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") changePage(pageIndex - 1);
+      if (event.key === "ArrowRight") changePage(pageIndex + 1);
+    };
+    window.addEventListener("keydown", handleKeys);
+    return () => window.removeEventListener("keydown", handleKeys);
+  }, [pageIndex, readingPages.length, book]);
+  function changePage(nextPage: number) {
+    if (!book || !readingPages.length) return;
+    const safePage = Math.max(0, Math.min(nextPage, readingPages.length - 1));
+    if (safePage === pageIndex) return;
+    setPageIndex(safePage);
+    const nextProgress = Math.round(((safePage + 1) / readingPages.length) * 100);
     setProgress(nextProgress);
-    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = window.setTimeout(() => {
-      saveBook(book.id, {
-        progress: nextProgress,
-        status: nextProgress >= 100 ? "Finished" : "Currently Reading",
-      }).catch(() => undefined);
-    }, 700);
+    saveBook(book.id, {
+      progress: nextProgress,
+      status: nextProgress >= 100 ? "Finished" : "Currently Reading",
+    }).catch(() => undefined);
+  }
+  async function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      await readerRef.current?.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
   }
 
   if (error || (book && (!book.readingUrl || book.readingType === "none"))) {
@@ -2167,33 +2210,52 @@ export function ReadingPage({ bookId }: { bookId: string }) {
 
   if (book.readingType === "text") {
     return (
-      <AppShell>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Now reading</p>
-            <h1 className="truncate font-display text-2xl font-semibold">{book.title}</h1>
-            <p className="text-xs text-ink/45">by {book.author}</p>
+      <div ref={readerRef} className="fixed inset-0 z-[70] flex min-h-dvh flex-col bg-[#f7f8f8] text-ink">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-paper px-4 sm:px-7">
+          <div className="min-w-0 leading-tight">
+            <p className="truncate font-display text-base font-semibold sm:text-lg">{book.title}</p>
+            <p className="truncate text-[10px] text-ink/45 sm:text-xs">{book.author}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="min-w-24 text-right">
-              <p className="text-xs font-semibold">{progress}% read</p>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line">
-                <div className="h-full rounded-full bg-clay transition-all" style={{ width: `${progress}%` }} />
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="grid size-10 place-items-center rounded-lg text-ink/60 transition hover:bg-cream hover:text-ink"
+              aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
+              title={isFullscreen ? "Exit full screen" : "Enter full screen"}
+            >
+              {isFullscreen ? <Minimize2 className="size-5" /> : <Maximize2 className="size-5" />}
+            </button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/books/$bookId" params={{ bookId }}><X /> <span className="hidden sm:inline">Close reader</span></Link>
+            </Button>
+          </div>
+        </header>
+        <main className="min-h-0 flex-1 p-3 sm:p-6 lg:p-8">
+          <article className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-lg border border-line bg-paper shadow-sm">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-7 sm:px-10 sm:py-9 lg:px-20">
+              <div className="mx-auto max-w-3xl whitespace-pre-wrap font-display text-[17px] leading-8 text-ink/85 sm:text-lg">
+                {readingPages[pageIndex] || "Loading the book text..."}
               </div>
             </div>
-            <Button asChild variant="outline"><Link to="/books/$bookId" params={{ bookId }}>Close reader</Link></Button>
-          </div>
-        </div>
-        <div
-          ref={readerRef}
-          onScroll={handleReadingScroll}
-          className="h-[calc(100vh-12rem)] min-h-[520px] overflow-y-auto rounded-xl border border-line bg-paper px-5 py-8 shadow-sm sm:px-10 lg:px-20"
-        >
-          <article className="mx-auto max-w-3xl whitespace-pre-wrap font-display text-[17px] leading-8 text-ink/85 sm:text-lg">
-            {readingText || "Loading the book text..."}
+            <div className="h-1 shrink-0 bg-line">
+              <div className="h-full bg-clay transition-all" style={{ width: `${progress}%` }} />
+            </div>
           </article>
-        </div>
-      </AppShell>
+        </main>
+        <footer className="flex h-18 shrink-0 items-center justify-between gap-3 border-t border-line bg-paper px-4 sm:px-7">
+          <Button variant="outline" disabled={pageIndex === 0} onClick={() => changePage(pageIndex - 1)}>
+            <ChevronLeft /> <span className="hidden sm:inline">Previous</span>
+          </Button>
+          <div className="text-center">
+            <p className="text-xs font-semibold">Page {readingPages.length ? pageIndex + 1 : 0} of {readingPages.length}</p>
+            <p className="mt-0.5 text-[10px] text-ink/40">{progress}% complete</p>
+          </div>
+          <Button disabled={!readingPages.length || pageIndex === readingPages.length - 1} onClick={() => changePage(pageIndex + 1)}>
+            <span className="hidden sm:inline">Next</span> <ChevronRight />
+          </Button>
+        </footer>
+      </div>
     );
   }
 

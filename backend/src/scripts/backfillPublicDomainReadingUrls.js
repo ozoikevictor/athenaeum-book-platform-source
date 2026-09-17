@@ -44,6 +44,8 @@ async function backfillPublicDomainReadingUrls({ apply = false, verify = true } 
     if (apply) {
       book.readingType = "text";
       book.readingUrl = readingUrl;
+      book.readingProvider = "Project Gutenberg";
+      book.readingAccess = "full";
       await book.save();
       console.log(`UPDATED: ${title}`);
     } else {
@@ -51,7 +53,28 @@ async function backfillPublicDomainReadingUrls({ apply = false, verify = true } 
     }
   }
 
+  const booksWithoutSources = await Book.find({
+    $or: [{ readingType: "none" }, { readingUrl: "" }, { readingUrl: { $exists: false } }]
+  });
+  let externalMatches = 0;
+  for (const book of booksWithoutSources) {
+    const query = encodeURIComponent(`intitle:${book.title} inauthor:${book.author}`);
+    const readingUrl = `https://books.google.com/books?q=${query}`;
+    externalMatches += 1;
+    if (apply) {
+      book.readingType = "external";
+      book.readingUrl = readingUrl;
+      book.readingProvider = "Google Books";
+      book.readingAccess = "search";
+      await book.save();
+      console.log(`EXTERNAL: ${book.title}`);
+    } else {
+      console.log(`EXTERNAL MATCH: ${book.title} -> ${readingUrl}`);
+    }
+  }
+
   console.log(`${apply ? "Updated" : "Verified"} ${matched} public-domain books.`);
+  console.log(`${apply ? "Updated" : "Found"} ${externalMatches} external book links.`);
   if (!apply) console.log("Dry run only. Run again with --apply to save these matches.");
   return matched;
 }

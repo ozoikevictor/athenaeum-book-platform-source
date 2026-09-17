@@ -148,6 +148,8 @@ export type ApiBook = {
   cover: string;
   readingType?: "none" | "text" | "pdf" | "external";
   readingUrl?: string;
+  readingProvider?: string;
+  readingAccess?: "full" | "preview" | "borrow" | "purchase" | "search";
   status?: "Want to Read" | "Currently Reading" | "Finished";
   progress?: number;
   userRating?: number;

@@ -55,6 +55,16 @@ const bookSchema = new mongoose.Schema(
       type: String,
       default: "",
       trim: true
+    },
+    readingProvider: {
+      type: String,
+      default: "",
+      trim: true
+    },
+    readingAccess: {
+      type: String,
+      enum: ["full", "preview", "borrow", "purchase", "search"],
+      default: "search"
     }
   },
   { timestamps: true }

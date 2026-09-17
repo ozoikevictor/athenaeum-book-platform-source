@@ -134,6 +134,14 @@ function coverSrc(book: Pick<Book, "id" | "cover"> | Pick<ApiBook, "id" | "cover
   return localCovers[book.id] ?? savedCover ?? coverPlaceholder;
 }
 
+function readingActionLabel(book: Pick<ApiBook, "readingType" | "readingAccess">) {
+  if (book.readingType === "text" || book.readingType === "pdf") return "Read now";
+  if (book.readingAccess === "preview") return "Preview book";
+  if (book.readingAccess === "borrow") return "Borrow online";
+  if (book.readingAccess === "purchase") return "Get the book";
+  return "Find online";
+}
+
 function Cover({ book, className = "" }: { book: Book | ApiBook; className?: string }) {
   return (
     <img
@@ -1567,7 +1575,8 @@ export function DashboardPage() {
                             params={{ bookId: item.book.id }}
                             className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-clay hover:underline"
                           >
-                            <BookOpen className="size-3" /> Read now
+                            {item.book.readingType === "external" ? <ExternalLink className="size-3" /> : <BookOpen className="size-3" />}
+                            {readingActionLabel(item.book)}
                           </Link>
                         )}
                       </td>
@@ -2009,7 +2018,8 @@ export function BookDetailsPage({ bookId }: { bookId: string }) {
             {book.readingUrl && book.readingType !== "none" && (
               <Button asChild>
                 <Link to="/read/$bookId" params={{ bookId: book.id }}>
-                  <BookOpen /> Read now
+                  {book.readingType === "external" ? <ExternalLink /> : <BookOpen />}
+                  {readingActionLabel(book)}
                 </Link>
               </Button>
             )}
@@ -2264,15 +2274,17 @@ export function ReadingPage({ bookId }: { bookId: string }) {
       <AppShell>
         <section className="mx-auto max-w-2xl rounded-2xl border border-line bg-paper p-7 text-center sm:p-10">
           <BookOpen className="mx-auto size-9 text-clay" />
-          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-clay">External reading source</p>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-clay">
+            {book.readingProvider || "External reading source"}
+          </p>
           <h1 className="mt-2 font-display text-3xl font-semibold">{book.title}</h1>
           <p className="mt-3 text-sm leading-relaxed text-ink/55">
-            This title is provided by an external library, publisher, or authorised source.
+            Availability may include a preview, borrowing option, library listing, or authorised purchase depending on your country and the publisher.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button asChild>
               <a href={book.readingUrl} target="_blank" rel="noreferrer">
-                Open reading source <ExternalLink />
+                {readingActionLabel(book)} <ExternalLink />
               </a>
             </Button>
             <Button asChild variant="outline"><Link to="/books/$bookId" params={{ bookId }}>Back to details</Link></Button>
@@ -3590,6 +3602,8 @@ function AdminForm() {
         ).trim(),
         readingType: String(form.get("readingType") || "none") as ApiBook["readingType"],
         readingUrl: String(form.get("readingUrl") || "").trim(),
+        readingProvider: String(form.get("readingProvider") || "").trim(),
+        readingAccess: String(form.get("readingAccess") || "search") as ApiBook["readingAccess"],
       };
       if (editingBook) await updateBook(editingBook.id, input);
       else await createBook(input);
@@ -3712,6 +3726,29 @@ function AdminForm() {
               placeholder="https://example.com/book.pdf"
               className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
             />
+          </label>
+          <label className="text-sm font-medium">
+            Reading provider
+            <input
+              name="readingProvider"
+              defaultValue={editingBook?.readingProvider ?? ""}
+              placeholder="Google Books, Open Library..."
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Access offered
+            <select
+              name="readingAccess"
+              defaultValue={editingBook?.readingAccess ?? "search"}
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            >
+              <option value="full">Full book</option>
+              <option value="preview">Preview</option>
+              <option value="borrow">Borrow online</option>
+              <option value="purchase">Purchase</option>
+              <option value="search">Find online</option>
+            </select>
           </label>
           <label className="text-sm font-medium">
             Publication year

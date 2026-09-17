@@ -32,6 +32,8 @@ function formatBook(book, readingItem, rating, engagement = {}) {
     cover: plain.cover ?? "",
     readingType: plain.readingType ?? "none",
     readingUrl: plain.readingUrl ?? "",
+    readingProvider: plain.readingProvider ?? "",
+    readingAccess: plain.readingAccess ?? (plain.readingType === "text" ? "full" : "search"),
     status: readingItem?.status,
     progress: readingItem?.progress,
     userRating: rating?.value,
@@ -181,7 +183,7 @@ async function getReadingContent(req, res) {
 }
 
 async function createBook(req, res) {
-  const { title, author, genre, description, cover, year, pages, tags = [], reason, readingType = "none", readingUrl = "" } = req.body;
+  const { title, author, genre, description, cover, year, pages, tags = [], reason, readingType = "none", readingUrl = "", readingProvider = "", readingAccess = "search" } = req.body;
   const cleanTitle = title?.trim();
   const cleanAuthor = author?.trim();
 
@@ -214,7 +216,9 @@ async function createBook(req, res) {
     rating: Number(req.body.rating ?? 0),
     reason: reason?.trim() || "Recommended for your shelf",
     readingType: ["text", "pdf", "external"].includes(readingType) ? readingType : "none",
-    readingUrl: readingUrl?.trim() || ""
+    readingUrl: readingUrl?.trim() || "",
+    readingProvider: readingProvider?.trim() || "",
+    readingAccess: ["full", "preview", "borrow", "purchase", "search"].includes(readingAccess) ? readingAccess : "search"
   });
 
   return res.status(201).json({ message: "Book created", book: formatBook(book) });

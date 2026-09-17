@@ -23,6 +23,8 @@ function formatBook(book, item) {
     cover: book.cover ?? "",
     readingType: book.readingType ?? "none",
     readingUrl: book.readingUrl ?? "",
+    readingProvider: book.readingProvider ?? "",
+    readingAccess: book.readingAccess ?? (book.readingType === "text" ? "full" : "search"),
     status: item.status,
     progress: item.progress,
     userRating: item.userRating
@@ -44,7 +46,9 @@ function formatCatalogBook(book, reason) {
     tags: book.tags,
     cover: book.cover,
     readingType: book.readingType ?? "none",
-    readingUrl: book.readingUrl ?? ""
+    readingUrl: book.readingUrl ?? "",
+    readingProvider: book.readingProvider ?? "",
+    readingAccess: book.readingAccess ?? (book.readingType === "text" ? "full" : "search")
   };
 }
 

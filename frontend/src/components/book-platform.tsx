@@ -665,52 +665,55 @@ function MarketingHeader() {
           </div>
         </div>
         {open && (
-          <div
-            className="fixed inset-0 z-[80] bg-ink/70 md:hidden"
-            role="presentation"
+          <button
+            className="fixed inset-0 z-[70] bg-ink/35 backdrop-blur-[1px] md:hidden"
+            aria-label="Close navigation"
             onClick={() => setOpen(false)}
-          >
-            <div
-              className="flex min-h-dvh w-full flex-col bg-paper p-5 text-ink shadow-2xl"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="flex items-center justify-between">
-                <Logo compact />
-                <button
-                  className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink transition hover:bg-ink hover:text-cream"
-                  aria-label="Close menu"
-                  onClick={() => setOpen(false)}
-                >
-                  <X className="size-5" />
-                </button>
-              </div>
-              <nav className="mt-8 grid gap-2">
-                {nav.map(([to, label]) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    onClick={() => setOpen(false)}
-                    className="rounded-lg border border-line bg-cream px-4 py-3.5 text-base font-semibold text-ink/75 hover:bg-ink hover:text-cream"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-              <div className="mt-auto grid gap-3 border-t border-line pt-5">
-                <Button asChild variant="outline" className="h-12 text-base">
-                  <Link to="/login" onClick={() => setOpen(false)}>
-                    Login
-                  </Link>
-                </Button>
-                <Button asChild className="h-12 text-base">
-                  <Link to="/register" onClick={() => setOpen(false)}>
-                    Register
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+          />
         )}
+        <aside
+          className={cx(
+            "fixed inset-y-0 left-0 z-[80] flex w-80 max-w-[86vw] -translate-x-full flex-col border-r border-line bg-paper px-6 py-7 text-ink shadow-2xl transition-transform duration-300 ease-out md:hidden",
+            open && "translate-x-0",
+          )}
+          aria-hidden={!open}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <Logo />
+            <button
+              className="grid size-10 shrink-0 place-items-center rounded-lg border border-line bg-cream text-ink transition hover:bg-ink hover:text-cream"
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+          <nav className="mt-10 grid gap-2">
+            {nav.map(([to, label]) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-3 text-sm font-semibold text-ink/65 transition hover:bg-cream hover:text-ink"
+                activeProps={{ className: "bg-ink text-cream hover:bg-ink hover:text-cream" }}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-auto grid gap-3 border-t border-line pt-5">
+            <Button asChild variant="outline" className="h-11">
+              <Link to="/login" onClick={() => setOpen(false)}>
+                Login
+              </Link>
+            </Button>
+            <Button asChild className="h-11">
+              <Link to="/register" onClick={() => setOpen(false)}>
+                Register
+              </Link>
+            </Button>
+          </div>
+        </aside>
       </header>
       <div className="h-18 sm:h-20" aria-hidden="true" />
     </>

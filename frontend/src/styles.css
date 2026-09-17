@@ -237,6 +237,14 @@
   [class~="rounded-xl"][class~="bg-paper"] {
     box-shadow: 0 1px 2px oklch(0.255 0.032 48 / 4%);
   }
+
+  [class~="mt-3"][class~="space-y-2"] {
+    max-height: 18rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.375rem;
+    scrollbar-gutter: stable;
+  }
 }
 
 @layer utilities {

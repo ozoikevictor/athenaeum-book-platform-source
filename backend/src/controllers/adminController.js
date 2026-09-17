@@ -18,9 +18,9 @@ async function getOverview(req, res) {
       { $sort: { count: -1 } },
       { $limit: 5 }
     ]),
-    User.find().select("name createdAt").sort({ createdAt: -1 }).limit(3),
-    Book.find().select("title createdAt").sort({ createdAt: -1 }).limit(3),
-    Comment.find().populate("user", "name").populate("book", "title").sort({ createdAt: -1 }).limit(3)
+    User.find().select("name createdAt").sort({ createdAt: -1 }).limit(20),
+    Book.find().select("title createdAt").sort({ createdAt: -1 }).limit(20),
+    Comment.find().populate("user", "name").populate("book", "title").sort({ createdAt: -1 }).limit(20)
   ]);
 
   const topGenreTotal = topGenreRows.reduce((sum, row) => sum + row.count, 0) || 1;
@@ -34,7 +34,7 @@ async function getOverview(req, res) {
     }))
   ]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 6);
+    .slice(0, 30);
 
   res.json({
     stats: {

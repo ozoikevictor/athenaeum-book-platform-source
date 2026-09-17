@@ -179,6 +179,21 @@
     [class~="rounded-2xl"][class~="p-6"] {
       padding: 1rem !important;
     }
+
+    div[class~="flex"][class~="gap-2"]:has(> select) {
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      width: 100%;
+    }
+
+    div[class~="flex"][class~="gap-2"]:has(> select) > select {
+      min-width: 0;
+      width: 100%;
+    }
+
+    div[class~="flex"][class~="gap-2"]:has(> select) > button {
+      display: none;
+    }
   }
 
   @media (max-width: 419px) {

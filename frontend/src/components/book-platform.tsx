@@ -2335,13 +2335,27 @@ export function ProfilePage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl border border-line bg-paper p-6 lg:col-span-2">
           <div className="flex items-center gap-4 border-b border-line pb-6">
-            <div className="relative shrink-0">
+            <label className="relative shrink-0 cursor-pointer" title="Change profile photo">
               <AccountAvatar large src={profileImage} />
-              <label
-                className="absolute -bottom-2 -right-2 grid size-8 cursor-pointer place-items-center rounded-full border border-line bg-ink text-cream shadow-sm transition hover:bg-clay"
-                title="Choose profile photo"
-              >
+              <span className="absolute -bottom-2 -right-2 grid size-8 place-items-center rounded-full border border-line bg-ink text-cream shadow-sm transition hover:bg-clay">
                 <Upload className="size-3.5" />
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={handleProfileImage}
+              />
+            </label>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-2xl font-semibold">{displayName}</h2>
+              <p className="truncate text-sm text-ink/50">{displayEmail}</p>
+              <p className="mt-2 text-xs text-clay">
+                {isAdmin ? "Admin account" : "Reader account"}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <label className="cursor-pointer text-xs font-semibold text-clay hover:underline">
+                  {profileImage ? "Change photo" : "Add photo"}
                 <input
                   type="file"
                   accept="image/*"
@@ -2349,13 +2363,20 @@ export function ProfilePage() {
                   onChange={handleProfileImage}
                 />
               </label>
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-display text-2xl font-semibold">{displayName}</h2>
-              <p className="truncate text-sm text-ink/50">{displayEmail}</p>
-              <p className="mt-2 text-xs text-clay">
-                {isAdmin ? "Admin account" : "Reader account"}
-              </p>
+                {profileImage && (
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-destructive hover:underline"
+                    onClick={() => {
+                      setProfileImage("");
+                      setSaved(false);
+                      setAccountMessage("Photo removed. Save changes to keep this update.");
+                    }}
+                  >
+                    Remove photo
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">

@@ -73,8 +73,20 @@ async function login(req, res) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
 
+  let userChanged = false;
+
   if (legacyPasswordMatches) {
     user.password = await bcrypt.hash(password, 10);
+    userChanged = true;
+  }
+
+  const normalizedRole = String(user.role).toLowerCase() === "admin" ? "Admin" : "User";
+  if (user.role !== normalizedRole) {
+    user.role = normalizedRole;
+    userChanged = true;
+  }
+
+  if (userChanged) {
     await user.save();
   }
 

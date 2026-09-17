@@ -70,7 +70,7 @@ export function requireSignIn() {
 
 export function requireReader() {
   requireSignIn();
-  if (getCurrentUser()?.role !== "User") {
+  if (getCurrentUser()?.role?.toLowerCase() !== "user") {
     signOut();
     throw redirect({ to: "/login" });
   }
@@ -78,7 +78,7 @@ export function requireReader() {
 
 export function requireAdmin() {
   requireSignIn();
-  if (getCurrentUser()?.role !== "Admin") {
+  if (getCurrentUser()?.role?.toLowerCase() !== "admin") {
     signOut();
     throw redirect({ to: "/login" });
   }

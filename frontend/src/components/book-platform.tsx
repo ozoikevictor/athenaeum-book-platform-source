@@ -338,7 +338,8 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
   }, []);
   useEffect(() => {
     const user = getCurrentUser();
-    const hasCorrectRole = admin ? user?.role === "Admin" : user?.role === "User";
+    const role = user?.role?.toLowerCase();
+    const hasCorrectRole = admin ? role === "admin" : role === "user";
     if (!isSignedIn() || !hasCorrectRole) {
       signOut();
       navigate({ to: "/login", replace: true });
@@ -977,7 +978,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         : await loginUser(email, password);
 
       completeSignIn(
-        response.user?.role === "Admin" ? "/admin" : "/dashboard",
+        response.user?.role?.toLowerCase() === "admin" ? "/admin" : "/dashboard",
         response.token,
         response.user,
       );
@@ -2078,7 +2079,7 @@ export function ProfilePage() {
       setAccountMessage(err instanceof Error ? err.message : "Could not change password");
     }
   }
-  const isAdmin = currentUser?.role === "Admin";
+  const isAdmin = currentUser?.role?.toLowerCase() === "admin";
   const displayName = currentUser?.name ?? "Reader";
   const displayEmail = currentUser?.email ?? "";
   const favoriteGenres = currentUser?.favoriteGenres?.length

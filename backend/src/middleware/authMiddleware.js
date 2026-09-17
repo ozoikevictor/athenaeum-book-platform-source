@@ -45,7 +45,7 @@ async function optionalProtect(req, res, next) {
 }
 
 function adminOnly(req, res, next) {
-  if (req.user?.role !== "Admin") {
+  if (String(req.user?.role).toLowerCase() !== "admin") {
     return res.status(403).json({ message: "Admin access is required" });
   }
 

@@ -199,6 +199,7 @@
 
     [class~="overflow-x-auto"] {
       max-width: calc(100vw - 2rem);
+      max-height: 19rem !important;
       overscroll-behavior-inline: contain;
     }
 
@@ -247,11 +248,13 @@
   }
 
   [class~="overflow-x-auto"][class~="rounded-2xl"] {
-    max-height: 32rem;
+    max-height: 22rem;
     overflow-x: auto;
     overflow-y: auto;
     overscroll-behavior-y: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-color: oklch(0.58 0.16 35 / 50%) transparent;
+    scrollbar-width: thin;
     scrollbar-gutter: stable;
   }
 

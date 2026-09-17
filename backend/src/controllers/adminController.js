@@ -4,6 +4,78 @@ const Like = require("../models/Like");
 const Rating = require("../models/Rating");
 const User = require("../models/User");
 const ReadingListItem = require("../models/ReadingListItem");
+const { createSlug } = require("../utils/demoStore");
+
+function inferGenre(subjects = []) {
+  const value = subjects.join(" ").toLowerCase();
+  if (value.includes("science fiction")) return "Science Fiction";
+  if (value.includes("fantasy")) return "Fantasy";
+  if (value.includes("mystery") || value.includes("detective")) return "Mystery";
+  if (value.includes("romance") || value.includes("love stories")) return "Romance";
+  if (value.includes("horror") || value.includes("ghost")) return "Horror";
+  if (value.includes("history") || value.includes("historical")) return "Historical Fiction";
+  if (value.includes("poetry")) return "Poetry";
+  if (value.includes("biography") || value.includes("autobiography")) return "Biography";
+  if (value.includes("juvenile") || value.includes("children")) return "Children's Literature";
+  return "Classic Fiction";
+}
+
+async function importPublicDomainBooks(req, res) {
+  const requested = Math.min(100, Math.max(1, Number(req.body.count) || 100));
+  const existing = await Book.find().select("title slug").lean();
+  const existingTitles = new Set(existing.map((book) => book.title.toLowerCase().trim()));
+  const usedSlugs = new Set(existing.map((book) => book.slug));
+  const candidates = [];
+
+  for (let page = 1; page <= 12 && candidates.length < requested; page += 1) {
+    const response = await fetch(`https://gutendex.com/books/?languages=en&sort=popular&page=${page}`, {
+      signal: AbortSignal.timeout(30000)
+    });
+    if (!response.ok) throw new Error(`Gutenberg catalogue returned HTTP ${response.status}`);
+    const data = await response.json();
+
+    for (const item of data.results ?? []) {
+      const title = item.title?.trim();
+      const author = item.authors?.[0]?.name?.trim();
+      const textEntry = Object.entries(item.formats ?? {}).find(
+        ([type, url]) => type.startsWith("text/plain") && typeof url === "string" && url.startsWith("https://")
+      );
+      if (!title || !author || item.copyright !== false || !textEntry || existingTitles.has(title.toLowerCase())) continue;
+
+      let slug = createSlug(title);
+      let suffix = 2;
+      while (usedSlugs.has(slug)) {
+        slug = `${createSlug(title)}-${suffix}`;
+        suffix += 1;
+      }
+      const subjects = (item.subjects ?? []).slice(0, 4);
+      const themes = subjects.slice(0, 3).map((subject) => subject.replace(/\s*--\s*/g, " ").toLowerCase());
+      const genre = inferGenre(subjects);
+      candidates.push({
+        slug,
+        title,
+        author,
+        genre,
+        rating: 0,
+        description: `${title} is a public-domain work by ${author}${themes.length ? ` exploring ${themes.join(", ")}` : " preserved for generations of readers"}.`,
+        reason: `Recommended for readers discovering influential ${genre.toLowerCase()} and enduring public-domain literature.`,
+        tags: [...new Set([genre, "Public domain", ...subjects.slice(0, 2).map((subject) => subject.split(" -- ")[0])])],
+        cover: item.formats?.["image/jpeg"] ?? "",
+        readingType: "text",
+        readingUrl: textEntry[1],
+        readingProvider: "Project Gutenberg",
+        readingAccess: "full"
+      });
+      existingTitles.add(title.toLowerCase());
+      usedSlugs.add(slug);
+      if (candidates.length >= requested) break;
+    }
+  }
+
+  if (!candidates.length) return res.json({ message: "No new public-domain books were found", imported: 0 });
+  await Book.insertMany(candidates);
+  return res.status(201).json({ message: `${candidates.length} public-domain books imported`, imported: candidates.length });
+}
 
 async function getOverview(req, res) {
   const [totalUsers, totalBooks, totalRatings, totalLikes, pendingComments, activeRecommendations, topGenreRows, recentUsers, recentBooks, recentComments] = await Promise.all([
@@ -268,6 +340,7 @@ module.exports = {
   getOverview,
   getRecommendationHealth,
   hideReview,
+  importPublicDomainBooks,
   inviteUser,
   listBooks,
   listSavedBooks,

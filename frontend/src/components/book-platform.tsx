@@ -64,6 +64,7 @@ import {
   getReaders,
   getReadingList,
   hideAdminComment,
+  importPublicDomainBooks,
   loginUser,
   rateBook,
   registerUser,
@@ -4092,6 +4093,22 @@ export function AdminSavedBooksPage() {
   );
 }
 export function AdminBooksPage() {
+  const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState("");
+  async function handleImport() {
+    if (!window.confirm("Import up to 100 new public-domain books from Project Gutenberg? Existing titles will be skipped.")) return;
+    setImporting(true);
+    setImportMessage("");
+    try {
+      const result = await importPublicDomainBooks(100);
+      setImportMessage(result.message);
+      window.dispatchEvent(new Event("athenaeum-books-changed"));
+    } catch (err) {
+      setImportMessage(err instanceof Error ? err.message : "Could not import books");
+    } finally {
+      setImporting(false);
+    }
+  }
   return (
     <AppShell admin>
       <PageHeader
@@ -4099,13 +4116,22 @@ export function AdminBooksPage() {
         title="Book management"
         description="Keep titles, covers, and metadata tidy for every reader."
         action={
-          <Button asChild>
-            <a href="#add-book">
-              <Plus /> Add book
-            </a>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={handleImport} disabled={importing}>
+              {importing ? <LoaderCircle className="animate-spin" /> : <BookOpen />}
+              {importing ? "Importing..." : "Import public-domain books"}
+            </Button>
+            <Button asChild>
+              <a href="#add-book"><Plus /> Add book</a>
+            </Button>
+          </div>
         }
       />
+      {importMessage && (
+        <div className="mb-5 rounded-xl border border-line bg-paper p-4 text-sm text-ink/65">
+          {importMessage}
+        </div>
+      )}
       <div className="mb-5 flex items-center justify-between">
         <p className="text-sm text-ink/50">Live catalogue from MongoDB</p>
         <Button variant="outline" size="sm">

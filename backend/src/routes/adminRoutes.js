@@ -8,6 +8,7 @@ const {
   getOverview,
   getRecommendationHealth,
   hideReview,
+  importPublicDomainBooks,
   inviteUser,
   listBooks,
   listSavedBooks,
@@ -26,6 +27,7 @@ router.use(protect, adminOnly);
 router.get("/overview", asyncHandler(getOverview));
 router.get("/activity", asyncHandler(getActivity));
 router.get("/books", asyncHandler(listBooks));
+router.post("/books/import-public-domain", asyncHandler(importPublicDomainBooks));
 router.get("/saved-books", asyncHandler(listSavedBooks));
 router.get("/users", asyncHandler(listUsers));
 router.post("/users", asyncHandler(inviteUser));

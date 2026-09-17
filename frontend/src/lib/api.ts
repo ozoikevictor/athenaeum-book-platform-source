@@ -377,6 +377,14 @@ export function getAdminBooks() {
   return apiRequest<{ books: AdminBookRow[] }>("/admin/books");
 }
 
+export function importPublicDomainBooks(count = 100) {
+  return apiRequest<{ message: string; imported: number }>("/admin/books/import-public-domain", {
+    method: "POST",
+    body: { count },
+    timeoutMs: 120000,
+  });
+}
+
 export function deleteAdminBook(id: string) {
   return apiRequest<{ message: string }>(`/books/${id}`, { method: "DELETE" });
 }

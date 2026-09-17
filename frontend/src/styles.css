@@ -72,32 +72,32 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.28 0.035 55);
-  --card: oklch(1 0 0);
+  --background: oklch(0.975 0.006 230);
+  --foreground: oklch(0.255 0.032 48);
+  --card: oklch(0.995 0.002 95);
   --card-foreground: oklch(0.28 0.035 55);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.28 0.035 55);
   --primary: oklch(0.28 0.035 55);
   --primary-foreground: oklch(0.96 0.025 85);
-  --secondary: oklch(0.982 0.003 90);
+  --secondary: oklch(0.955 0.012 145);
   --secondary-foreground: oklch(0.28 0.035 55);
-  --muted: oklch(0.982 0.003 90);
+  --muted: oklch(0.955 0.008 230);
   --muted-foreground: oklch(0.52 0.04 55);
-  --accent: oklch(0.982 0.003 90);
+  --accent: oklch(0.945 0.018 72);
   --accent-foreground: oklch(0.28 0.035 55);
   --destructive: oklch(0.58 0.16 30);
   --destructive-foreground: oklch(0.98 0.01 85);
-  --border: oklch(0.925 0.006 88);
-  --input: oklch(0.925 0.006 88);
+  --border: oklch(0.89 0.012 210);
+  --input: oklch(0.885 0.014 210);
   --ring: oklch(0.58 0.16 35);
-  --ink: oklch(0.28 0.035 55);
-  --cream: oklch(1 0 0);
-  --paper: oklch(1 0 0);
+  --ink: oklch(0.255 0.032 48);
+  --cream: oklch(0.975 0.006 230);
+  --paper: oklch(0.995 0.002 95);
   --clay: oklch(0.58 0.16 35);
   --gold: oklch(0.68 0.12 78);
   --sage: oklch(0.61 0.08 125);
-  --line: oklch(0.925 0.006 88);
+  --line: oklch(0.89 0.012 210);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -155,10 +155,36 @@
 
   body {
     background:
-      linear-gradient(135deg, oklch(1 0 0) 0%, oklch(0.99 0.003 255) 46%, oklch(1 0 0) 100%);
+      linear-gradient(180deg, oklch(0.988 0.004 210) 0%, oklch(0.965 0.009 225) 100%);
     background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    min-height: 100vh;
+    text-rendering: optimizeLegibility;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-color: oklch(0.58 0.16 35 / 55%) transparent;
+    scrollbar-width: thin;
+  }
+
+  ::selection {
+    background: oklch(0.68 0.12 78 / 35%);
+    color: var(--color-ink);
+  }
+
+  input,
+  select,
+  textarea {
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: oklch(0.58 0.16 35 / 55%);
+    box-shadow: 0 0 0 3px oklch(0.58 0.16 35 / 12%);
   }
 
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
@@ -203,33 +229,43 @@
   }
 }
 
+@layer components {
+  [class~="rounded-2xl"][class~="bg-paper"] {
+    box-shadow: 0 1px 2px oklch(0.255 0.032 48 / 4%), 0 14px 40px oklch(0.36 0.025 220 / 6%);
+  }
+
+  [class~="rounded-xl"][class~="bg-paper"] {
+    box-shadow: 0 1px 2px oklch(0.255 0.032 48 / 4%);
+  }
+}
+
 @layer utilities {
   .animate-page-rise {
-    animation: page-rise 720ms ease both;
+    animation: page-rise 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .animate-soft-rise {
-    animation: soft-rise 760ms ease both;
+    animation: soft-rise 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .animate-soft-rise-delay-1 {
-    animation: soft-rise 760ms ease 120ms both;
+    animation: soft-rise 680ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
   }
 
   .animate-soft-rise-delay-2 {
-    animation: soft-rise 760ms ease 240ms both;
+    animation: soft-rise 680ms cubic-bezier(0.22, 1, 0.36, 1) 170ms both;
   }
 
   .animate-soft-rise-delay-3 {
-    animation: soft-rise 760ms ease 360ms both;
+    animation: soft-rise 680ms cubic-bezier(0.22, 1, 0.36, 1) 250ms both;
   }
 
   .animate-book-float {
-    animation: book-float 5.5s ease-in-out 900ms infinite;
+    animation: book-float 7s ease-in-out 900ms infinite;
   }
 
   .animate-card-in {
-    animation: card-in 650ms ease both;
+    animation: card-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   @keyframes page-rise {

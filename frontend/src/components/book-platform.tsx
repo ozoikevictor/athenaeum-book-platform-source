@@ -86,6 +86,7 @@ function BookCard({ book, compact = false, publicView = false }: { book: Book | 
 
 function AppShell({ children, admin = false }: { children: React.ReactNode; admin?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [headerRaised, setHeaderRaised] = useState(false);
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Reader";
@@ -99,11 +100,17 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
     signOut();
     navigate({ to: "/login" });
   }
+  useEffect(() => {
+    const updateHeader = () => setHeaderRaised(window.scrollY > 8);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeader);
+  }, []);
   return <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
-    <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
+    <header className={cx("fixed inset-x-0 top-0 z-40 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300", headerRaised ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]" : "border-line/60 shadow-sm")}>
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-2 px-4 sm:h-18 sm:gap-4 sm:px-7 lg:px-10">
         <div className="flex items-center gap-3">
-          <button className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink transition hover:bg-ink hover:text-cream lg:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-5" /></button>
+          <button className="grid size-10 place-items-center text-ink transition hover:text-clay lg:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-6" /></button>
           <Logo compact />
         </div>
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">{nav.map(([to, label, Icon]) => <Link key={to} to={to} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink/65 transition hover:bg-ink/5"><Icon className="size-4" />{label}</Link>)}</nav>
@@ -117,6 +124,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
         </div>
       </div>
     </header>
+    <div className="h-16 sm:h-18" aria-hidden="true" />
     <aside className={cx("fixed inset-y-0 left-0 z-50 flex w-80 max-w-[86vw] -translate-x-full flex-col border-r border-line bg-cream px-6 py-7 shadow-2xl transition-transform duration-300 lg:hidden", open && "translate-x-0")}>
         <div className="flex items-center justify-between"><Logo /><button className="grid size-9 place-items-center rounded-lg border border-line bg-paper transition hover:bg-ink hover:text-cream" aria-label="Close menu" onClick={() => setOpen(false)}><X className="size-5" /></button></div>
         <nav className="mt-10 space-y-1">
@@ -170,16 +178,24 @@ function SiteFooter({ compact = false }: { compact?: boolean }) {
 
 function MarketingHeader() {
   const [open, setOpen] = useState(false);
+  const [headerRaised, setHeaderRaised] = useState(false);
   const nav = [
     ["/", "Home"],
     ["/browse", "Browse Books"],
     ["/reading-list", "Reading List"],
   ] as const;
 
-  return <header className="sticky top-0 z-50 border-b border-line/80 bg-cream shadow-sm">
+  useEffect(() => {
+    const updateHeader = () => setHeaderRaised(window.scrollY > 8);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeader);
+  }, []);
+
+  return <><header className={cx("fixed inset-x-0 top-0 z-50 border-b bg-cream/95 backdrop-blur-xl transition-shadow duration-300", headerRaised ? "border-line/80 shadow-[0_10px_30px_rgba(55,36,26,0.12)]" : "border-line/60 shadow-sm")}>
     <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-3 px-4 sm:h-20 sm:px-5">
       <div className="flex items-center gap-3">
-        <button className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-ink shadow-sm transition hover:bg-ink hover:text-cream md:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-5" /></button>
+        <button className="grid size-10 place-items-center text-ink transition hover:text-clay md:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-6" /></button>
         <Logo />
       </div>
       <nav className="hidden items-center gap-8 text-sm font-medium text-ink/60 md:flex">
@@ -209,7 +225,7 @@ function MarketingHeader() {
         </div>
       </div>
     </div>}
-  </header>;
+  </header><div className="h-18 sm:h-20" aria-hidden="true" /></>;
 }
 
 export function LandingPage() {

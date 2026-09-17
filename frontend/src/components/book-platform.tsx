@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
-  ArrowRight, BarChart3, Bell, BookMarked, BookOpen, Check, ChevronDown, CircleUserRound,
+  ArrowLeft, ArrowRight, BarChart3, Bell, BookMarked, BookOpen, Check, ChevronDown, CircleUserRound,
   Compass, Edit3, Eye, Heart, LayoutDashboard, Library, LogIn, Menu, MoreHorizontal,
   Plus, Search, Settings, SlidersHorizontal, Star, Trash2, Users, X,
 } from "lucide-react";
@@ -94,6 +94,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
   const [open, setOpen] = useState(false);
   const [headerRaised, setHeaderRaised] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = getCurrentUser();
   const displayName = currentUser?.name ?? "Reader";
   const displayBooks = currentUser?.books ?? 0;
@@ -106,6 +107,15 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
     signOut();
     navigate({ to: "/login" });
   }
+  const homePath = admin ? "/admin" : "/dashboard";
+  const showBack = location.pathname !== homePath;
+  function handleBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    navigate({ to: homePath });
+  }
   useEffect(() => {
     const updateHeader = () => setHeaderRaised(window.scrollY > 8);
     updateHeader();
@@ -117,6 +127,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-2 px-4 sm:h-18 sm:gap-4 sm:px-7 lg:px-10">
         <div className="flex items-center gap-3">
           <button className="grid size-10 place-items-center text-ink transition hover:text-clay lg:hidden" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}><Menu className="size-6" /></button>
+          {showBack && <button className="grid size-10 place-items-center text-ink transition hover:text-clay" aria-label={`Back to ${admin ? "admin overview" : "dashboard"}`} onClick={handleBack}><ArrowLeft className="size-5" /></button>}
           <Logo compact />
         </div>
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">{nav.map(([to, label, Icon]) => <Link key={to} to={to} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink/65 transition hover:bg-ink/5"><Icon className="size-4" />{label}</Link>)}</nav>

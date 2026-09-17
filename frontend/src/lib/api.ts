@@ -1,4 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
+const DEFAULT_API_BASE_URL = import.meta.env.DEV
+  ? "http://localhost:5000/api"
+  : "https://athenaeum-book-platform-source.onrender.com/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_BASE_URL;
 const REQUEST_TIMEOUT_MS = 60000;
 
 type RequestOptions = Omit<RequestInit, "body"> & {
@@ -41,7 +44,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
       throw new Error("The backend is still waking up. Wait a moment, then try again. Render free hosting can sleep when nobody is using the app.");
     }
     if (error instanceof TypeError) {
-      throw new Error("The backend could not be reached from this device. Check the Vercel API URL and Render service status.");
+      throw new Error(`The backend could not be reached. API URL: ${API_BASE_URL}. Check that Vercel has the correct VITE_API_URL and that Render is running.`);
     }
     throw error;
   } finally {

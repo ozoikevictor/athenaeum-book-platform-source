@@ -35,6 +35,15 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: []
     },
+    profileImage: {
+      type: String,
+      default: ""
+    },
+    readingPreferences: {
+      weeklyRecommendations: { type: Boolean, default: true },
+      newReleaseAlerts: { type: Boolean, default: true },
+      communityActivity: { type: Boolean, default: false }
+    },
     passwordResetToken: {
       type: String,
       default: null

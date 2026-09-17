@@ -13,7 +13,9 @@ function formatUser(user) {
     role: user.role,
     books: user.books,
     status: user.status,
-    favoriteGenres: user.favoriteGenres
+    favoriteGenres: user.favoriteGenres,
+    profileImage: user.profileImage,
+    readingPreferences: user.readingPreferences
   };
 }
 
@@ -47,7 +49,8 @@ async function register(req, res) {
     books: 0,
     status: "Active",
     password: hashedPassword,
-    favoriteGenres
+    favoriteGenres,
+    profileImage: ""
   });
 
   const safeUser = formatUser(user);

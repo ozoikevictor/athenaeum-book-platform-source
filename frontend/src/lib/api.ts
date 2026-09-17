@@ -85,8 +85,21 @@ export type AuthResponse = {
     name: string;
     email: string;
     role: string;
+    books?: number;
+    status?: string;
+    favoriteGenres?: string[];
+    profileImage?: string;
+    readingPreferences?: ReadingPreferences;
   };
 };
+
+export type ReadingPreferences = {
+  weeklyRecommendations: boolean;
+  newReleaseAlerts: boolean;
+  communityActivity: boolean;
+};
+
+export type ProfileUser = AuthResponse["user"];
 
 export function loginUser(email: string, password: string) {
   return apiRequest<AuthResponse>("/auth/login", {
@@ -236,6 +249,28 @@ export function deleteMyAccount() {
 export function changeMyPassword(input: { currentPassword: string; newPassword: string }) {
   return apiRequest<{ message: string }>("/users/me/change-password", {
     method: "POST",
+    body: input,
+  });
+}
+
+export function getMyProfile() {
+  return apiRequest<{ user: ProfileUser }>("/users/me/profile");
+}
+
+export function updateMyProfile(input: {
+  name: string;
+  favoriteGenres: string[];
+  profileImage: string;
+}) {
+  return apiRequest<{ message: string; user: ProfileUser }>("/users/me/profile", {
+    method: "PUT",
+    body: input,
+  });
+}
+
+export function updateMyPreferences(input: ReadingPreferences) {
+  return apiRequest<{ message: string; preferences: ReadingPreferences }>("/users/me/preferences", {
+    method: "PUT",
     body: input,
   });
 }

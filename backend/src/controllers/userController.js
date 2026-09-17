@@ -80,6 +80,7 @@ async function getProfile(req, res) {
       books: req.user.books,
       status: req.user.status,
       favoriteGenres: req.user.favoriteGenres,
+      profileImage: req.user.profileImage,
       readingPreferences: req.user.readingPreferences ?? {
         weeklyRecommendations: true,
         newReleaseAlerts: true,
@@ -90,16 +91,36 @@ async function getProfile(req, res) {
 }
 
 async function updateProfile(req, res) {
-  const allowed = ["name", "favoriteGenres"];
+  const allowed = ["name", "favoriteGenres", "profileImage"];
   allowed.forEach((key) => {
     if (req.body[key] !== undefined) req.user[key] = req.body[key];
   });
   await req.user.save();
-  res.json({ message: "Profile updated", user: req.user });
+  res.json({
+    message: "Profile updated",
+    user: {
+      id: req.user._id.toString(),
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      books: req.user.books,
+      status: req.user.status,
+      favoriteGenres: req.user.favoriteGenres,
+      profileImage: req.user.profileImage,
+      readingPreferences: req.user.readingPreferences
+    }
+  });
 }
 
-function updatePreferences(req, res) {
-  res.json({ message: "Preferences updated", preferences: req.body });
+async function updatePreferences(req, res) {
+  const current = req.user.readingPreferences?.toObject?.() ?? req.user.readingPreferences ?? {};
+  req.user.readingPreferences = {
+    weeklyRecommendations: req.body.weeklyRecommendations ?? current.weeklyRecommendations ?? true,
+    newReleaseAlerts: req.body.newReleaseAlerts ?? current.newReleaseAlerts ?? true,
+    communityActivity: req.body.communityActivity ?? current.communityActivity ?? false
+  };
+  await req.user.save();
+  res.json({ message: "Preferences updated", preferences: req.user.readingPreferences });
 }
 
 function changePassword(req, res) {

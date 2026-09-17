@@ -24,7 +24,7 @@ router.use(protect);
 
 router.get("/me/profile", asyncHandler(getProfile));
 router.put("/me/profile", asyncHandler(updateProfile));
-router.put("/me/preferences", updatePreferences);
+router.put("/me/preferences", asyncHandler(updatePreferences));
 router.post("/me/change-password", asyncHandler(changePassword));
 router.get("/me/export", asyncHandler(exportAccount));
 router.get("/me/report.pdf", asyncHandler(exportReportPdf));

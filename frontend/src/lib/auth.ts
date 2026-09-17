@@ -17,7 +17,21 @@ export type StoredUser = {
   books?: number;
   status?: string;
   favoriteGenres?: string[];
+  profileImage?: string;
+  readingPreferences?: {
+    weeklyRecommendations: boolean;
+    newReleaseAlerts: boolean;
+    communityActivity: boolean;
+  };
 };
+
+export function updateCurrentUser(user: StoredUser) {
+  if (typeof window === "undefined") return;
+  const storage = window.localStorage.getItem(USER_KEY)
+    ? window.localStorage
+    : window.sessionStorage;
+  storage.setItem(USER_KEY, JSON.stringify(user));
+}
 
 export function isSignedIn() {
   // The saved browser session is unavailable during server rendering. Allow the

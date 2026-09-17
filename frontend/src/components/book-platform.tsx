@@ -25,6 +25,7 @@ import {
   SlidersHorizontal,
   Star,
   Trash2,
+  Upload,
   Users,
   X,
 } from "lucide-react";
@@ -51,6 +52,7 @@ import {
   getBooks,
   getDashboard,
   getGenres,
+  getMyProfile,
   getReadingList,
   hideAdminComment,
   loginUser,
@@ -62,6 +64,8 @@ import {
   saveBook,
   toggleBookLike,
   updateBook,
+  updateMyPreferences,
+  updateMyProfile,
   updateReadingListItem,
   type AdminBookRow,
   type AdminEngagementResponse,
@@ -72,8 +76,9 @@ import {
   type BookComment,
   type DashboardResponse,
   type ReadingListItem,
+  type ReadingPreferences,
 } from "@/lib/api";
-import { getCurrentUser, isSignedIn, signIn, signOut } from "@/lib/auth";
+import { getCurrentUser, isSignedIn, signIn, signOut, updateCurrentUser } from "@/lib/auth";
 import { genres, reviews, users, type Book, type BookStatus } from "@/lib/books";
 import cartographersSilence from "@/assets/cartographers-silence.jpg";
 import orbitalGardens from "@/assets/orbital-gardens.jpg";
@@ -145,16 +150,20 @@ function Logo({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function AccountAvatar({ large = false }: { large?: boolean }) {
+function AccountAvatar({ large = false, src }: { large?: boolean; src?: string }) {
   return (
     <span
       className={cx(
-        "grid shrink-0 place-items-center rounded-full border border-line bg-paper text-ink/55",
+        "grid shrink-0 place-items-center overflow-hidden rounded-full border border-line bg-paper text-ink/55",
         large ? "size-20 rounded-2xl" : "size-10",
       )}
       aria-hidden="true"
     >
-      <CircleUserRound className={large ? "size-9" : "size-5"} />
+      {src ? (
+        <img src={src} alt="" className="size-full object-cover" />
+      ) : (
+        <CircleUserRound className={large ? "size-9" : "size-5"} />
+      )}
     </span>
   );
 }
@@ -427,7 +436,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
               <p className="hidden text-xs text-ink/45 sm:block">{admin ? "Admin profile" : "Reader account"}</p>
             </Link>
             <Link to="/profile" aria-label="Open profile">
-              <AccountAvatar />
+              <AccountAvatar src={currentUser?.profileImage} />
             </Link>
             <Button
               variant="outline"
@@ -479,7 +488,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
         {!admin && (
           <div className="mt-8 rounded-xl border border-line bg-paper p-4">
             <div className="mb-3 flex items-center gap-2.5">
-              <AccountAvatar />
+              <AccountAvatar src={currentUser?.profileImage} />
               <div className="leading-tight">
                 <p className="text-sm font-semibold">{displayName}</p>
                 <p className="text-xs text-ink/45">Reader · {displayBooks} books</p>
@@ -2172,13 +2181,87 @@ export function ReadingListPage() {
 
 export function ProfilePage() {
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [accountMessage, setAccountMessage] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
+  const [name, setName] = useState(currentUser?.name ?? "Reader");
+  const [profileImage, setProfileImage] = useState(currentUser?.profileImage ?? "");
+  const [favoriteGenres, setFavoriteGenres] = useState<string[]>(currentUser?.favoriteGenres ?? []);
+  const [preferences, setPreferences] = useState<ReadingPreferences>(
+    currentUser?.readingPreferences ?? {
+      weeklyRecommendations: true,
+      newReleaseAlerts: true,
+      communityActivity: false,
+    },
+  );
+  useEffect(() => {
+    getMyProfile()
+      .then(({ user }) => {
+        setName(user.name);
+        setProfileImage(user.profileImage ?? "");
+        setFavoriteGenres(user.favoriteGenres ?? []);
+        setPreferences(
+          user.readingPreferences ?? {
+            weeklyRecommendations: true,
+            newReleaseAlerts: true,
+            communityActivity: false,
+          },
+        );
+        updateCurrentUser({ ...currentUser, ...user });
+      })
+      .catch((err) =>
+        setAccountMessage(err instanceof Error ? err.message : "Could not load your profile"),
+      )
+      .finally(() => setLoadingProfile(false));
+  }, []);
+  async function handleProfileImage(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAccountMessage("Please choose an image file.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setAccountMessage("Profile photo must be smaller than 2MB.");
+      return;
+    }
+    try {
+      setProfileImage(await readImageFileAsDataUrl(file));
+      setSaved(false);
+      setAccountMessage("Photo selected. Save changes to keep it.");
+    } catch (err) {
+      setAccountMessage(err instanceof Error ? err.message : "Could not read the photo");
+    }
+  }
+  async function handleSaveProfile() {
+    if (!name.trim()) {
+      setAccountMessage("Please enter your full name.");
+      return;
+    }
+    setSaving(true);
+    setSaved(false);
+    setAccountMessage("");
+    try {
+      const [{ user }] = await Promise.all([
+        updateMyProfile({ name: name.trim(), favoriteGenres, profileImage }),
+        updateMyPreferences(preferences),
+      ]);
+      updateCurrentUser({ ...currentUser, ...user, readingPreferences: preferences });
+      setSaved(true);
+      setAccountMessage("Your profile and preferences were saved.");
+    } catch (err) {
+      setAccountMessage(err instanceof Error ? err.message : "Could not save your profile");
+    } finally {
+      setSaving(false);
+    }
+  }
   async function handleDownloadData() {
     try {
       const data = await exportAccountData();
@@ -2214,6 +2297,7 @@ export function ProfilePage() {
       setAccountMessage("New password must be at least 6 characters.");
       return;
     }
+    setChangingPassword(true);
     try {
       await changeMyPassword({ currentPassword, newPassword });
       setCurrentPassword("");
@@ -2223,14 +2307,14 @@ export function ProfilePage() {
       setAccountMessage("Password changed successfully.");
     } catch (err) {
       setAccountMessage(err instanceof Error ? err.message : "Could not change password");
+    } finally {
+      setChangingPassword(false);
     }
   }
   const isAdmin = currentUser?.role?.toLowerCase() === "admin";
-  const displayName = currentUser?.name ?? "Reader";
+  const displayName = name || currentUser?.name || "Reader";
   const displayEmail = currentUser?.email ?? "";
-  const favoriteGenres = currentUser?.favoriteGenres?.length
-    ? currentUser.favoriteGenres
-    : genres.slice(1, 6);
+  const displayedGenres = favoriteGenres.length ? favoriteGenres : genres.slice(1, 6);
   return (
     <AppShell admin={isAdmin}>
       <PageHeader
@@ -2242,19 +2326,33 @@ export function ProfilePage() {
             : "Shape the shelf around your taste, habits, and the kinds of stories you want more of."
         }
         action={
-          <Button onClick={() => setSaved(!saved)}>
-            {saved ? <Check /> : <Edit3 />}
-            {saved ? "Changes saved" : "Edit profile"}
+          <Button onClick={handleSaveProfile} disabled={saving || loadingProfile}>
+            {saving ? <LoaderCircle className="animate-spin" /> : saved ? <Check /> : <Edit3 />}
+            {saving ? "Saving..." : saved ? "Changes saved" : "Save changes"}
           </Button>
         }
       />
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl border border-line bg-paper p-6 lg:col-span-2">
           <div className="flex items-center gap-4 border-b border-line pb-6">
-            <AccountAvatar large />
-            <div>
+            <div className="relative shrink-0">
+              <AccountAvatar large src={profileImage} />
+              <label
+                className="absolute -bottom-2 -right-2 grid size-8 cursor-pointer place-items-center rounded-full border border-line bg-ink text-cream shadow-sm transition hover:bg-clay"
+                title="Choose profile photo"
+              >
+                <Upload className="size-3.5" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={handleProfileImage}
+                />
+              </label>
+            </div>
+            <div className="min-w-0">
               <h2 className="font-display text-2xl font-semibold">{displayName}</h2>
-              <p className="text-sm text-ink/50">{displayEmail}</p>
+              <p className="truncate text-sm text-ink/50">{displayEmail}</p>
               <p className="mt-2 text-xs text-clay">
                 {isAdmin ? "Admin account" : "Reader account"}
               </p>
@@ -2264,7 +2362,11 @@ export function ProfilePage() {
             <label className="text-sm font-medium">
               Full name
               <input
-                defaultValue={displayName}
+                value={name}
+                onChange={(event) => {
+                  setName(event.target.value);
+                  setSaved(false);
+                }}
                 className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
               />
             </label>
@@ -2272,6 +2374,7 @@ export function ProfilePage() {
               Email address
               <input
                 defaultValue={displayEmail}
+                readOnly
                 className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
               />
             </label>
@@ -2279,13 +2382,25 @@ export function ProfilePage() {
           <div className="mt-7">
             <h3 className="font-display text-xl font-semibold">Favorite genres</h3>
             <div className="mt-3 flex flex-wrap gap-2">
-              {favoriteGenres.map((g) => (
-                <span
+              {displayedGenres.map((g) => (
+                <button
+                  type="button"
                   key={g}
-                  className="rounded-full bg-clay/10 px-3 py-1.5 text-xs font-medium text-clay"
+                  onClick={() => {
+                    setFavoriteGenres((current) =>
+                      current.includes(g) ? current.filter((genre) => genre !== g) : [...current, g],
+                    );
+                    setSaved(false);
+                  }}
+                  className={cx(
+                    "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                    favoriteGenres.includes(g)
+                      ? "border-clay/30 bg-clay/10 text-clay"
+                      : "border-line bg-cream text-ink/55 hover:border-clay/30",
+                  )}
                 >
                   {g}
-                </span>
+                </button>
               ))}
             </div>
           </div>
@@ -2306,7 +2421,15 @@ export function ProfilePage() {
                     : "A thoughtful shortlist every Monday"}
                 </span>
               </span>
-              <input type="checkbox" defaultChecked className="size-4 accent-clay" />
+              <input
+                type="checkbox"
+                checked={preferences.weeklyRecommendations}
+                onChange={(event) => {
+                  setPreferences((current) => ({ ...current, weeklyRecommendations: event.target.checked }));
+                  setSaved(false);
+                }}
+                className="size-4 accent-clay"
+              />
             </label>
             <label className="flex items-center justify-between gap-4">
               <span>
@@ -2317,7 +2440,15 @@ export function ProfilePage() {
                   {isAdmin ? "Add and update the catalogue" : "Only for favorite genres"}
                 </span>
               </span>
-              <input type="checkbox" defaultChecked className="size-4 accent-clay" />
+              <input
+                type="checkbox"
+                checked={preferences.newReleaseAlerts}
+                onChange={(event) => {
+                  setPreferences((current) => ({ ...current, newReleaseAlerts: event.target.checked }));
+                  setSaved(false);
+                }}
+                className="size-4 accent-clay"
+              />
             </label>
             <label className="flex items-center justify-between gap-4">
               <span>
@@ -2330,7 +2461,15 @@ export function ProfilePage() {
                     : "Reviews and reading notes"}
                 </span>
               </span>
-              <input type="checkbox" className="size-4 accent-clay" />
+              <input
+                type="checkbox"
+                checked={preferences.communityActivity}
+                onChange={(event) => {
+                  setPreferences((current) => ({ ...current, communityActivity: event.target.checked }));
+                  setSaved(false);
+                }}
+                className="size-4 accent-clay"
+              />
             </label>
           </div>
         </section>
@@ -2395,7 +2534,10 @@ export function ProfilePage() {
               />
             </label>
             <div className="flex gap-2 sm:col-span-3">
-              <Button type="submit">Save password</Button>
+              <Button type="submit" disabled={changingPassword}>
+                {changingPassword && <LoaderCircle className="animate-spin" />}
+                {changingPassword ? "Saving..." : "Save password"}
+              </Button>
               <Button type="button" variant="outline" onClick={() => setShowPasswordForm(false)}>
                 Cancel
               </Button>

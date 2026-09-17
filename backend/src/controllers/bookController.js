@@ -155,6 +155,31 @@ async function getBookById(req, res) {
   return res.json({ book: await enrichBook(book, req.user?._id, readingItem, rating) });
 }
 
+async function getReadingContent(req, res) {
+  const book = await findBook(req.params.id);
+  if (!book) return res.status(404).json({ message: "Book not found" });
+  if (book.readingType !== "text" || !book.readingUrl) {
+    return res.status(400).json({ message: "This book does not have an in-app text source" });
+  }
+
+  let source;
+  try {
+    source = new URL(book.readingUrl);
+  } catch {
+    return res.status(400).json({ message: "The reading source URL is invalid" });
+  }
+  const allowedHosts = ["gutenberg.org", "www.gutenberg.org"];
+  if (source.protocol !== "https:" || !allowedHosts.includes(source.hostname)) {
+    return res.status(400).json({ message: "In-app text currently supports Project Gutenberg HTTPS links" });
+  }
+
+  const response = await fetch(source, { signal: AbortSignal.timeout(20000) });
+  if (!response.ok) return res.status(502).json({ message: "The reading source could not be loaded" });
+  const content = await response.text();
+  if (content.length > 5_000_000) return res.status(413).json({ message: "This text is too large for the reader" });
+  return res.json({ title: book.title, author: book.author, content });
+}
+
 async function createBook(req, res) {
   const { title, author, genre, description, cover, year, pages, tags = [], reason, readingType = "none", readingUrl = "" } = req.body;
   const cleanTitle = title?.trim();
@@ -188,7 +213,7 @@ async function createBook(req, res) {
     tags: Array.isArray(tags) ? tags : tags.split(",").map((tag) => tag.trim()).filter(Boolean),
     rating: Number(req.body.rating ?? 0),
     reason: reason?.trim() || "Recommended for your shelf",
-    readingType: ["pdf", "external"].includes(readingType) ? readingType : "none",
+    readingType: ["text", "pdf", "external"].includes(readingType) ? readingType : "none",
     readingUrl: readingUrl?.trim() || ""
   });
 
@@ -207,7 +232,7 @@ async function updateBook(req, res) {
 
   Object.assign(book, {
     ...req.body,
-    readingType: ["none", "pdf", "external"].includes(req.body.readingType)
+    readingType: ["none", "text", "pdf", "external"].includes(req.body.readingType)
       ? req.body.readingType
       : book.readingType,
     readingUrl: req.body.readingUrl?.trim?.() ?? book.readingUrl,
@@ -362,6 +387,7 @@ module.exports = {
   createBook,
   deleteBook,
   getBookById,
+  getReadingContent,
   listBooks,
   listFeaturedBooks,
   listGenres,

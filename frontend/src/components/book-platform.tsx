@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -50,6 +50,7 @@ import {
   getAdminSavedBooks,
   getAdminUsers,
   getBook,
+  getBookReadingContent,
   getBookComments,
   getBooks,
   getDashboard,
@@ -2108,12 +2109,48 @@ export function BookDetailsPage({ bookId }: { bookId: string }) {
 
 export function ReadingPage({ bookId }: { bookId: string }) {
   const [book, setBook] = useState<ApiBook | null>(null);
+  const [readingText, setReadingText] = useState("");
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const readerRef = useRef<HTMLDivElement>(null);
+  const saveTimerRef = useRef<number | null>(null);
   useEffect(() => {
     getBook(bookId)
-      .then(({ book: loadedBook }) => setBook(loadedBook))
+      .then(async ({ book: loadedBook }) => {
+        setBook(loadedBook);
+        setProgress(loadedBook.progress ?? 0);
+        if (loadedBook.readingType === "text") {
+          const data = await getBookReadingContent(bookId);
+          setReadingText(data.content);
+        }
+      })
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load this book"));
   }, [bookId]);
+  useEffect(() => {
+    if (!readingText || !readerRef.current || !book?.progress) return;
+    const reader = readerRef.current;
+    const timer = window.setTimeout(() => {
+      reader.scrollTop = ((reader.scrollHeight - reader.clientHeight) * (book.progress ?? 0)) / 100;
+    }, 100);
+    return () => window.clearTimeout(timer);
+  }, [book?.progress, readingText]);
+  useEffect(() => () => {
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+  }, []);
+  function handleReadingScroll() {
+    if (!book || !readerRef.current) return;
+    const reader = readerRef.current;
+    const scrollable = reader.scrollHeight - reader.clientHeight;
+    const nextProgress = scrollable > 0 ? Math.min(100, Math.round((reader.scrollTop / scrollable) * 100)) : 100;
+    setProgress(nextProgress);
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(() => {
+      saveBook(book.id, {
+        progress: nextProgress,
+        status: nextProgress >= 100 ? "Finished" : "Currently Reading",
+      }).catch(() => undefined);
+    }, 700);
+  }
 
   if (error || (book && (!book.readingUrl || book.readingType === "none"))) {
     return (
@@ -2127,6 +2164,38 @@ export function ReadingPage({ bookId }: { bookId: string }) {
     );
   }
   if (!book) return <AppShell><EmptyState title="Opening book" copy="Preparing the reader." /></AppShell>;
+
+  if (book.readingType === "text") {
+    return (
+      <AppShell>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Now reading</p>
+            <h1 className="truncate font-display text-2xl font-semibold">{book.title}</h1>
+            <p className="text-xs text-ink/45">by {book.author}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="min-w-24 text-right">
+              <p className="text-xs font-semibold">{progress}% read</p>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line">
+                <div className="h-full rounded-full bg-clay transition-all" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+            <Button asChild variant="outline"><Link to="/books/$bookId" params={{ bookId }}>Close reader</Link></Button>
+          </div>
+        </div>
+        <div
+          ref={readerRef}
+          onScroll={handleReadingScroll}
+          className="h-[calc(100vh-12rem)] min-h-[520px] overflow-y-auto rounded-xl border border-line bg-paper px-5 py-8 shadow-sm sm:px-10 lg:px-20"
+        >
+          <article className="mx-auto max-w-3xl whitespace-pre-wrap font-display text-[17px] leading-8 text-ink/85 sm:text-lg">
+            {readingText || "Loading the book text..."}
+          </article>
+        </div>
+      </AppShell>
+    );
+  }
 
   if (book.readingType === "external") {
     return (
@@ -3567,6 +3636,7 @@ function AdminForm() {
               className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
             >
               <option value="none">No reading source</option>
+              <option value="text">Text inside Athenaeum (tracks progress)</option>
               <option value="pdf">PDF inside Athenaeum</option>
               <option value="external">External reading page</option>
             </select>

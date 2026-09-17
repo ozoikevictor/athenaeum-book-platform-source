@@ -146,7 +146,7 @@ export type ApiBook = {
   reason: string;
   tags: string[];
   cover: string;
-  readingType?: "none" | "pdf" | "external";
+  readingType?: "none" | "text" | "pdf" | "external";
   readingUrl?: string;
   status?: "Want to Read" | "Currently Reading" | "Finished";
   progress?: number;
@@ -326,6 +326,10 @@ export function getGenres() {
 
 export function getBook(bookId: string) {
   return apiRequest<{ book: ApiBook }>(`/books/${bookId}`);
+}
+
+export function getBookReadingContent(bookId: string) {
+  return apiRequest<{ title: string; author: string; content: string }>(`/books/${bookId}/read-content`);
 }
 
 export function saveBook(bookId: string, input: { status?: string; progress?: number } = {}) {

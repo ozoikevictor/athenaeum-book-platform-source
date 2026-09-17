@@ -3,6 +3,7 @@ const {
   createBook,
   deleteBook,
   getBookById,
+  getReadingContent,
   listBooks,
   listFeaturedBooks,
   listGenres,
@@ -22,6 +23,7 @@ const router = express.Router();
 router.get("/", optionalProtect, asyncHandler(listBooks));
 router.get("/genres", asyncHandler(listGenres));
 router.get("/featured", asyncHandler(listFeaturedBooks));
+router.get("/:id/read-content", protect, asyncHandler(getReadingContent));
 router.get("/:id", optionalProtect, asyncHandler(getBookById));
 router.post("/", protect, adminOnly, asyncHandler(createBook));
 router.put("/:id", protect, adminOnly, asyncHandler(updateBook));

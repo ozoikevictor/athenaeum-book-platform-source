@@ -48,7 +48,7 @@ const bookSchema = new mongoose.Schema(
     },
     readingType: {
       type: String,
-      enum: ["none", "pdf", "external"],
+      enum: ["none", "text", "pdf", "external"],
       default: "none"
     },
     readingUrl: {

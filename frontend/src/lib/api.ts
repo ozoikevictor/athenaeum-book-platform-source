@@ -146,6 +146,8 @@ export type ApiBook = {
   reason: string;
   tags: string[];
   cover: string;
+  readingType?: "none" | "pdf" | "external";
+  readingUrl?: string;
   status?: "Want to Read" | "Currently Reading" | "Finished";
   progress?: number;
   userRating?: number;

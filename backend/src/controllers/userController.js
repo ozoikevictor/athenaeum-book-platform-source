@@ -21,6 +21,8 @@ function formatBook(book, item) {
     reason: book.reason ?? "Recommended for your shelf",
     tags: book.tags ?? [],
     cover: book.cover ?? "",
+    readingType: book.readingType ?? "none",
+    readingUrl: book.readingUrl ?? "",
     status: item.status,
     progress: item.progress,
     userRating: item.userRating
@@ -40,7 +42,9 @@ function formatCatalogBook(book, reason) {
     description: book.description,
     reason,
     tags: book.tags,
-    cover: book.cover
+    cover: book.cover,
+    readingType: book.readingType ?? "none",
+    readingUrl: book.readingUrl ?? ""
   };
 }
 

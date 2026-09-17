@@ -30,6 +30,8 @@ function formatBook(book, readingItem, rating, engagement = {}) {
     reason: plain.reason ?? "Recommended for your shelf",
     tags: plain.tags ?? [],
     cover: plain.cover ?? "",
+    readingType: plain.readingType ?? "none",
+    readingUrl: plain.readingUrl ?? "",
     status: readingItem?.status,
     progress: readingItem?.progress,
     userRating: rating?.value,
@@ -154,12 +156,15 @@ async function getBookById(req, res) {
 }
 
 async function createBook(req, res) {
-  const { title, author, genre, description, cover, year, pages, tags = [], reason } = req.body;
+  const { title, author, genre, description, cover, year, pages, tags = [], reason, readingType = "none", readingUrl = "" } = req.body;
   const cleanTitle = title?.trim();
   const cleanAuthor = author?.trim();
 
   if (!cleanTitle || !cleanAuthor) {
     return res.status(400).json({ message: "Title and author are required" });
+  }
+  if (readingUrl && !/^https?:\/\//i.test(readingUrl)) {
+    return res.status(400).json({ message: "Reading URL must begin with http:// or https://" });
   }
 
   const baseSlug = createSlug(cleanTitle);
@@ -182,7 +187,9 @@ async function createBook(req, res) {
     pages,
     tags: Array.isArray(tags) ? tags : tags.split(",").map((tag) => tag.trim()).filter(Boolean),
     rating: Number(req.body.rating ?? 0),
-    reason: reason?.trim() || "Recommended for your shelf"
+    reason: reason?.trim() || "Recommended for your shelf",
+    readingType: ["pdf", "external"].includes(readingType) ? readingType : "none",
+    readingUrl: readingUrl?.trim() || ""
   });
 
   return res.status(201).json({ message: "Book created", book: formatBook(book) });
@@ -194,9 +201,16 @@ async function updateBook(req, res) {
   if (!book) {
     return res.status(404).json({ message: "Book not found" });
   }
+  if (req.body.readingUrl && !/^https?:\/\//i.test(req.body.readingUrl)) {
+    return res.status(400).json({ message: "Reading URL must begin with http:// or https://" });
+  }
 
   Object.assign(book, {
     ...req.body,
+    readingType: ["none", "pdf", "external"].includes(req.body.readingType)
+      ? req.body.readingType
+      : book.readingType,
+    readingUrl: req.body.readingUrl?.trim?.() ?? book.readingUrl,
     tags: Array.isArray(req.body.tags)
       ? req.body.tags
       : typeof req.body.tags === "string"

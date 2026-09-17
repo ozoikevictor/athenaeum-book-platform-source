@@ -11,6 +11,7 @@ import {
   CircleUserRound,
   Compass,
   Edit3,
+  ExternalLink,
   Eye,
   Heart,
   LayoutDashboard,
@@ -1555,6 +1556,15 @@ export function DashboardPage() {
                           {item.book.title}
                         </Link>
                         <p className="text-xs text-ink/45">{item.book.author}</p>
+                        {item.book.readingUrl && item.book.readingType !== "none" && (
+                          <Link
+                            to="/read/$bookId"
+                            params={{ bookId: item.book.id }}
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-clay hover:underline"
+                          >
+                            <BookOpen className="size-3" /> Read now
+                          </Link>
+                        )}
                       </td>
                       <td className="px-3 py-3.5">
                         <span className="rounded-full bg-clay/10 px-2.5 py-1 text-xs font-medium text-clay">
@@ -1991,6 +2001,13 @@ export function BookDetailsPage({ bookId }: { bookId: string }) {
             ))}
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
+            {book.readingUrl && book.readingType !== "none" && (
+              <Button asChild>
+                <Link to="/read/$bookId" params={{ bookId: book.id }}>
+                  <BookOpen /> Read now
+                </Link>
+              </Button>
+            )}
             <Button onClick={handleSave} disabled={saved || saving}>
               {saved ? <Check /> : <BookMarked />}
               {saved ? "Saved to reading list" : saving ? "Saving" : "Save to reading list"}
@@ -2085,6 +2102,75 @@ export function BookDetailsPage({ bookId }: { bookId: string }) {
           ))}
         </div>
       </section>
+    </AppShell>
+  );
+}
+
+export function ReadingPage({ bookId }: { bookId: string }) {
+  const [book, setBook] = useState<ApiBook | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    getBook(bookId)
+      .then(({ book: loadedBook }) => setBook(loadedBook))
+      .catch((err) => setError(err instanceof Error ? err.message : "Could not load this book"));
+  }, [bookId]);
+
+  if (error || (book && (!book.readingUrl || book.readingType === "none"))) {
+    return (
+      <AppShell>
+        <EmptyState
+          title="Reading source unavailable"
+          copy={error || "The admin has not added a reading source for this book yet."}
+          action={<Button asChild><Link to="/books/$bookId" params={{ bookId }}>Back to book</Link></Button>}
+        />
+      </AppShell>
+    );
+  }
+  if (!book) return <AppShell><EmptyState title="Opening book" copy="Preparing the reader." /></AppShell>;
+
+  if (book.readingType === "external") {
+    return (
+      <AppShell>
+        <section className="mx-auto max-w-2xl rounded-2xl border border-line bg-paper p-7 text-center sm:p-10">
+          <BookOpen className="mx-auto size-9 text-clay" />
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-clay">External reading source</p>
+          <h1 className="mt-2 font-display text-3xl font-semibold">{book.title}</h1>
+          <p className="mt-3 text-sm leading-relaxed text-ink/55">
+            This title is provided by an external library, publisher, or authorised source.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Button asChild>
+              <a href={book.readingUrl} target="_blank" rel="noreferrer">
+                Open reading source <ExternalLink />
+              </a>
+            </Button>
+            <Button asChild variant="outline"><Link to="/books/$bookId" params={{ bookId }}>Back to details</Link></Button>
+          </div>
+        </section>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-clay">Now reading</p>
+          <h1 className="font-display text-2xl font-semibold">{book.title}</h1>
+          <p className="text-xs text-ink/45">by {book.author}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild variant="outline"><Link to="/books/$bookId" params={{ bookId }}>Close reader</Link></Button>
+          <Button asChild variant="outline"><a href={book.readingUrl} target="_blank" rel="noreferrer"><ExternalLink /> Open full screen</a></Button>
+        </div>
+      </div>
+      <div className="h-[calc(100vh-12rem)] min-h-[520px] overflow-hidden rounded-xl border border-line bg-paper shadow-sm">
+        <iframe
+          src={book.readingUrl}
+          title={`Read ${book.title}`}
+          className="size-full"
+        />
+      </div>
     </AppShell>
   );
 }
@@ -3371,6 +3457,8 @@ function AdminForm() {
         reason: String(
           form.get("reason") || "Recommended for readers who enjoy thoughtful books.",
         ).trim(),
+        readingType: String(form.get("readingType") || "none") as ApiBook["readingType"],
+        readingUrl: String(form.get("readingUrl") || "").trim(),
       };
       if (editingBook) await updateBook(editingBook.id, input);
       else await createBook(input);
@@ -3468,6 +3556,28 @@ function AdminForm() {
                 if (event.currentTarget.value.trim())
                   setCoverPreview(event.currentTarget.value.trim());
               }}
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium">
+            Reading source
+            <select
+              name="readingType"
+              defaultValue={editingBook?.readingType ?? "none"}
+              className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
+            >
+              <option value="none">No reading source</option>
+              <option value="pdf">PDF inside Athenaeum</option>
+              <option value="external">External reading page</option>
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Reading URL
+            <input
+              name="readingUrl"
+              type="url"
+              defaultValue={editingBook?.readingUrl ?? ""}
+              placeholder="https://example.com/book.pdf"
               className="mt-1.5 w-full rounded-lg border border-input bg-cream px-3 py-2.5 text-sm"
             />
           </label>

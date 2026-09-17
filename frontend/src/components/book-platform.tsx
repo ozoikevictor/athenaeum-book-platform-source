@@ -672,20 +672,21 @@ function MarketingHeader() {
             </Button>
           </div>
         </div>
-        {open && (
-          <button
-            className="fixed inset-0 z-[70] bg-ink/35 backdrop-blur-[1px] md:hidden"
-            aria-label="Close navigation"
-            onClick={() => setOpen(false)}
-          />
+      </header>
+      {open && (
+        <button
+          className="fixed inset-0 z-[70] bg-ink/35 backdrop-blur-[1px] md:hidden"
+          aria-label="Close navigation"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      <aside
+        className={cx(
+          "fixed inset-y-0 left-0 z-[80] flex w-80 max-w-[86vw] -translate-x-full flex-col border-r border-line bg-white px-6 py-7 text-ink shadow-2xl transition-transform duration-300 ease-out md:hidden",
+          open && "translate-x-0",
         )}
-        <aside
-          className={cx(
-            "fixed inset-y-0 left-0 z-[80] flex w-80 max-w-[86vw] -translate-x-full flex-col border-r border-line bg-paper px-6 py-7 text-ink shadow-2xl transition-transform duration-300 ease-out md:hidden",
-            open && "translate-x-0",
-          )}
-          aria-hidden={!open}
-        >
+        aria-hidden={!open}
+      >
           <div className="flex items-center justify-between gap-4">
             <Logo />
             <button
@@ -720,8 +721,7 @@ function MarketingHeader() {
               </Link>
             </Button>
           </div>
-        </aside>
-      </header>
+      </aside>
       <div className="h-18 sm:h-20" aria-hidden="true" />
     </>
   );

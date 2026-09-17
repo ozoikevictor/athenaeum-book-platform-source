@@ -315,6 +315,7 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
   const [open, setOpen] = useState(false);
   const [headerRaised, setHeaderRaised] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getCurrentUser();
@@ -362,8 +363,20 @@ function AppShell({ children, admin = false }: { children: React.ReactNode; admi
     if (!isSignedIn() || !hasCorrectRole) {
       signOut();
       navigate({ to: "/login", replace: true });
+      return;
     }
+    setAuthReady(true);
   }, [admin, navigate]);
+  if (!authReady) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-cream px-5 text-ink">
+        <div className="flex items-center gap-3 rounded-xl border border-line bg-paper px-5 py-4 shadow-sm">
+          <LoaderCircle className="size-5 animate-spin text-clay" />
+          <span className="text-sm font-medium">Checking your session...</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen overflow-x-hidden bg-cream text-ink">
       <header
